@@ -1,0 +1,10 @@
+# docs/ 정적 웹앱("녹음·자막 파일로 회의록 만들기")을 Cloudflare Workers 정적 자산으로 배포하는 설정.
+# 본체 앱(app/)과 별개이며 D1·R2·시크릿이 필요 없다. 서버 호출은 사용자가 브라우저에 직접 넣는 API 키로만 일어난다.
+# 배포:  npx wrangler deploy --config wrangler.docs.toml   (Cloudflare 로그인 필요)
+# 2026-10-05 기준 아직 배포하지 않았다. 라이브 데모는 원본 저장소에서 운영 중인 https://harness-meeting-app.kibayerin.workers.dev 를 그대로 쓴다.
+name = "planning-harness-portfolio-docs"
+compatibility_date = "2026-10-05"
+workers_dev = true
+
+[assets]
+directory = "./docs"
