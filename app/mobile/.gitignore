@@ -1,0 +1,10 @@
+node_modules/
+www/
+
+# Native IDE and local machine state
+android/.gradle/
+android/local.properties
+android/.idea/
+ios/App/DerivedData/
+ios/App/xcuserdata/
+*.xcuserstate

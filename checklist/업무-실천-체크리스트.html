@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>업무 실천 체크리스트</title>
+<style>
+  :root{
+    --paper:#F7F6F2; --card:#FFFFFF; --ink:#22252B; --sub:#6B7280;
+    --line:#E5E3DC; --pine:#2F6D5E; --pine-soft:#E7F0ED;
+    --warn:#A6403A; --warn-soft:#F7ECEA;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion:reduce){ *{transition:none!important; animation:none!important;} html{scroll-behavior:auto;} }
+  body{
+    font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+    background:var(--paper); color:var(--ink); line-height:1.55;
+    padding-bottom:88px;
+  }
+  .wrap{max-width:560px; margin:0 auto; padding:20px 16px;}
+
+  /* ── header ── */
+  header{padding:8px 2px 18px;}
+  .kicker{font-size:12px; letter-spacing:.14em; color:var(--pine); font-weight:700;}
+  h1{font-size:24px; font-weight:800; letter-spacing:-.02em; margin:4px 0 10px;}
+  .principle{
+    font-size:14px; color:var(--sub); border-left:3px solid var(--pine);
+    padding:8px 12px; background:var(--card); border-radius:0 8px 8px 0;
+  }
+  .principle b{color:var(--ink);}
+
+  /* ── overall progress ── */
+  .overall{display:flex; align-items:center; gap:12px; margin:16px 0 4px;}
+  .bar{flex:1; height:8px; background:var(--line); border-radius:99px; overflow:hidden;}
+  .bar>i{display:block; height:100%; width:0%; background:var(--pine); border-radius:99px; transition:width .35s ease;}
+  .pct{font-size:13px; font-weight:700; color:var(--pine); min-width:38px; text-align:right; font-variant-numeric:tabular-nums;}
+
+  /* ── day rail + sections ── */
+  .day{position:relative; margin-top:14px;}
+  .day::before{
+    content:""; position:absolute; left:15px; top:18px; bottom:18px;
+    width:2px; background:var(--line); border-radius:2px;
+  }
+  section{position:relative; padding-left:44px; margin-bottom:14px;}
+  .dot{
+    position:absolute; left:4px; top:14px; width:24px; height:24px; border-radius:50%;
+    background:var(--card); border:2px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; z-index:1; transition:border-color .25s, background .25s;
+  }
+  section.done .dot{border-color:var(--pine); background:var(--pine-soft);}
+
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden;
+  }
+  .sec-head{
+    width:100%; display:flex; align-items:center; gap:10px;
+    padding:14px 16px; background:none; border:none; cursor:pointer;
+    font:inherit; text-align:left; color:inherit;
+  }
+  .sec-head:focus-visible{outline:2px solid var(--pine); outline-offset:-2px; border-radius:14px;}
+  .sec-title{flex:1; font-size:15px; font-weight:700; letter-spacing:-.01em;}
+  .sec-count{font-size:12px; color:var(--sub); font-variant-numeric:tabular-nums;}
+  section.done .sec-count{color:var(--pine); font-weight:700;}
+  .chev{color:var(--sub); transition:transform .25s; font-size:12px;}
+  section.open .chev{transform:rotate(180deg);}
+
+  .sec-body{display:none; border-top:1px solid var(--line);}
+  section.open .sec-body{display:block;}
+
+  .group-label{
+    font-size:11px; font-weight:700; letter-spacing:.1em; color:var(--sub);
+    padding:12px 16px 2px;
+  }
+  .group-label.no{color:var(--warn);}
+
+  label.item{
+    display:flex; gap:12px; align-items:flex-start;
+    padding:11px 16px; cursor:pointer; border-bottom:1px solid #F1EFE9;
+  }
+  label.item:last-child{border-bottom:none;}
+  label.item input{
+    appearance:none; -webkit-appearance:none; flex:none;
+    width:20px; height:20px; margin-top:1px; border-radius:6px;
+    border:2px solid #C9C6BD; background:var(--card); cursor:pointer; position:relative;
+    transition:background .15s, border-color .15s;
+  }
+  label.item input:checked{background:var(--pine); border-color:var(--pine);}
+  label.item input:checked::after{
+    content:""; position:absolute; left:5px; top:1.5px; width:5px; height:9px;
+    border:solid #fff; border-width:0 2.5px 2.5px 0; transform:rotate(45deg);
+  }
+  label.item input:focus-visible{outline:2px solid var(--pine); outline-offset:2px;}
+  .item span{font-size:14px;}
+  label.item input:checked + span{color:var(--sub); text-decoration:line-through; text-decoration-color:#C9C6BD;}
+  .item.neg input:checked{background:var(--warn); border-color:var(--warn);}
+
+  /* ── templates ── */
+  .tpl{margin:10px 16px 14px; border:1px dashed var(--line); border-radius:10px; background:#FBFAF7;}
+  .tpl-head{display:flex; align-items:center; justify-content:space-between; padding:8px 12px 0;}
+  .tpl-head b{font-size:12px; color:var(--sub); letter-spacing:.06em;}
+  .copy{
+    font:inherit; font-size:12px; font-weight:700; color:var(--pine);
+    background:var(--pine-soft); border:none; border-radius:6px; padding:4px 10px; cursor:pointer;
+  }
+  .copy:focus-visible{outline:2px solid var(--pine); outline-offset:2px;}
+  pre{
+    padding:8px 12px 12px; font-size:12.5px; line-height:1.7; white-space:pre-wrap;
+    font-family:inherit; color:var(--ink);
+  }
+
+  /* ── boundary section ── */
+  .boundary .card{border-color:#E8D5D2; background:#FFFDFC;}
+  .boundary .dot{border-color:#E8D5D2;}
+  .boundary-note{
+    font-size:13px; color:var(--warn); padding:12px 16px 14px; border-top:1px solid #F3E4E1;
+  }
+  .boundary ul{list-style:none;}
+  .boundary li{
+    font-size:14px; padding:9px 16px; border-bottom:1px solid #F7EDEB;
+    display:flex; gap:10px; align-items:baseline;
+  }
+  .boundary li::before{content:"—"; color:var(--warn); flex:none;}
+  .boundary li:last-child{border-bottom:none;}
+
+  /* ── edit mode ── */
+  .item-edit{display:flex; gap:8px; align-items:center; padding:5px 16px 5px 12px; border-bottom:1px solid #F1EFE9;}
+  .item-edit .del{
+    flex:none; width:28px; height:28px; border:none; border-radius:8px;
+    background:var(--warn-soft); color:var(--warn); font:inherit; font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .item-edit .txt{
+    flex:1; font:inherit; font-size:14px; text-align:left; color:var(--ink);
+    background:none; border:none; padding:9px 0; cursor:pointer;
+  }
+  .item-edit .del:focus-visible, .item-edit .txt:focus-visible{outline:2px solid var(--pine); outline-offset:2px; border-radius:6px;}
+  .add-item{
+    display:block; width:calc(100% - 32px); margin:8px 16px 12px; padding:9px 0;
+    font:inherit; font-size:13px; font-weight:700; color:var(--pine);
+    background:none; border:1px dashed var(--pine); border-radius:10px; cursor:pointer;
+  }
+  .add-item:focus-visible{outline:2px solid var(--pine); outline-offset:2px;}
+
+  /* ── history ── */
+  .h-row{display:flex; align-items:center; gap:10px; padding:10px 16px; border-bottom:1px solid #F1EFE9;}
+  .h-row:last-child{border-bottom:none;}
+  .h-date{font-size:13px; font-weight:600; flex:none; min-width:78px; display:flex; align-items:center; gap:6px;}
+  .h-today{font-size:10px; font-weight:700; color:var(--pine); background:var(--pine-soft); border-radius:99px; padding:1px 7px;}
+  .h-bar{flex:1; height:6px; background:var(--line); border-radius:99px; overflow:hidden;}
+  .h-bar>i{display:block; height:100%; background:var(--pine); border-radius:99px;}
+  .h-count{font-size:12px; color:var(--sub); flex:none; min-width:80px; text-align:right; font-variant-numeric:tabular-nums;}
+  .h-empty{font-size:13px; color:var(--sub); padding:14px 16px;}
+
+  /* ── footer bar ── */
+  .foot{
+    position:fixed; left:0; right:0; bottom:0; background:rgba(247,246,242,.92);
+    backdrop-filter:blur(8px); border-top:1px solid var(--line);
+  }
+  .foot-in{max-width:560px; margin:0 auto; padding:12px 16px; display:flex; gap:10px; align-items:center;}
+  .foot .status{flex:1; font-size:12px; color:var(--sub); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .edit-toggle, .restore{
+    flex:none; font:inherit; font-size:13px; font-weight:700;
+    border:none; border-radius:10px; padding:10px 14px; cursor:pointer;
+  }
+  .edit-toggle{color:var(--pine); background:var(--pine-soft);}
+  .restore{color:var(--warn); background:var(--warn-soft);}
+  .edit-toggle:focus-visible, .restore:focus-visible{outline:2px solid var(--pine); outline-offset:2px;}
+  .reset{
+    font:inherit; font-size:13px; font-weight:700; color:#fff; background:var(--ink);
+    border:none; border-radius:10px; padding:10px 16px; cursor:pointer;
+  }
+  .reset:focus-visible{outline:2px solid var(--pine); outline-offset:2px;}
+  .toast{
+    position:fixed; left:50%; bottom:76px; transform:translateX(-50%) translateY(8px);
+    background:var(--ink); color:#fff; font-size:13px; padding:8px 16px; border-radius:99px;
+    opacity:0; pointer-events:none; transition:opacity .25s, transform .25s;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">DAILY PRACTICE</div>
+    <h1>업무 실천 체크리스트</h1>
+    <p class="principle"><b>범위는 좁게, AI 답은 검증하고,</b> 오늘 판단 가능한 작은 결과물을 빨리 만들어 직접 확인 후 짧게 보고한다.</p>
+    <div class="overall" aria-label="전체 진행률">
+      <div class="bar"><i id="overallBar"></i></div>
+      <div class="pct" id="overallPct">0%</div>
+    </div>
+  </header>
+
+  <div class="day" id="day"><!-- sections injected --></div>
+
+  <section class="history" id="sec-history">
+    <div class="dot" aria-hidden="true">📅</div>
+    <div class="card">
+      <button class="sec-head" id="historyHead" aria-expanded="false">
+        <div class="sec-title">지난 기록</div>
+        <div class="sec-count" id="historyCount"></div>
+        <div class="chev">▼</div>
+      </button>
+      <div class="sec-body" id="historyBody"><!-- history rows injected --></div>
+    </div>
+  </section>
+
+  <section class="boundary open">
+    <div class="dot" aria-hidden="true">⚠️</div>
+    <div class="card">
+      <div class="sec-head" style="cursor:default;">
+        <div class="sec-title">지키되, 받아들이지 않을 것</div>
+      </div>
+      <div style="border-top:1px solid #F3E4E1;">
+        <ul>
+          <li>무례하거나 위축시키는 말투</li>
+          <li>불명확한 야근 기준</li>
+          <li>업무 식비의 개인 부담</li>
+          <li>지속적인 과로</li>
+          <li>존중받지 못한다는 느낌</li>
+        </ul>
+        <p class="boundary-note">좋은 조언은 취하되, 존중받지 못하는 방식까지 받아들일 의무는 없다.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="foot">
+  <div class="foot-in">
+    <div class="status" id="status">불러오는 중…</div>
+    <button class="edit-toggle" id="editBtn">편집</button>
+    <button class="restore" id="restoreBtn" hidden>기본 항목 복원</button>
+    <button class="reset" id="resetBtn">새 하루 시작</button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+// <checklist:sections> 생성됨 — checklist/checklist-items.json 을 고치고 npm run build:checklist
+const SECTIONS = [
+  {
+    id: "morning", icon: "🌅", title: "하루 시작할 때",
+    groups: [
+    { items: [
+      "누적 피드백과 오늘 범위를 다시 확인했다",
+      "\"오늘 판단 가능하게 만들 결과물 하나\"를 정했다",
+      "그 결과물이 레벨 1인지 확인했다 (레벨 5로 키우지 않기)",
+      "구형 자료·장기 고도화·부가 기능은 후순위로 미뤘다",
+    ] },
+    ],
+  },
+  {
+    id: "intake", icon: "📥", title: "새 업무·회의를 받았을 때",
+    groups: [
+    { label: "AI에 넣기 전, 직접 4분류", items: [
+      "① 직접 요청 을 분리했다",
+      "② 확정된 결정 을 분리했다",
+      "③ 보류된 내용 을 분리했다",
+      "④ 도메인 설명 을 분리했다 (요구사항 아님!)",
+    ] },
+    { label: "범위 고정", items: [
+      "이번에 반드시 구현 / 확인 필요 / 후순위 / 제외 로 나눴다",
+      "설명 중 언급됐다는 이유만으로 기능화하지 않았다",
+      "합의 안 된 기능은 구현 전에 \"제안\"으로 확인했다",
+      "내 방식을 주장할 땐 고집 대신 작은 비교 실험으로 먼저 증명했다",
+    ] },
+    ],
+  },
+  {
+    id: "ai", icon: "🤖", title: "AI 사용할 때",
+    groups: [
+    { label: "요청해도 되는 것", items: [
+      "구현 후보·대안과 장단점을 요청했다",
+      "위험 요소·실패 가능성을 물었다",
+      "테스트 케이스 / 가장 작은 실험 방법을 요청했다",
+    ] },
+    { label: "AI에 맡기지 않을 것", neg: true, items: [
+      "최종 요구사항을 AI가 결정하게 두지 않았다",
+      "미확인 임계값을 AI 말대로 확정하지 않았다",
+      "현장 매핑을 추정으로 넣지 않았다",
+      "\"테스트 통과 = 검증 완료\"로 넘어가지 않았다",
+    ] },
+    { label: "결과를 받은 후", items: [
+      "AI 계획을 원문 요구와 1:1로 대조했다",
+      "요청하지 않은 기능을 삭제했다",
+      "미확정 임계값을 제거했다",
+    ] },
+    ],
+  },
+  {
+    id: "layers", icon: "🔍", title: "결과 정리 — 5층 분리",
+    groups: [
+    { items: [
+      "① 확인된 사실 (데이터로 검증됨)",
+      "② 계산된 결과",
+      "③ 가설",
+      "④ 현장 확인 필요",
+      "⑤ AI 제안",
+      "위 다섯 가지를 섞어 쓰지 않았다",
+    ] },
+    ],
+  },
+  {
+    id: "verify", icon: "✅", title: "구현·검증할 때",
+    groups: [
+    { items: [
+      "기능·계산 먼저, GUI는 나중에 했다",
+      "비교 변수 A/B가 서로 독립적인지 확인했다",
+      "판정 조건이 코드에 정확히 들어갔는지 봤다",
+      "계산값 → 화면 출력까지 연결을 확인했다",
+      "원본 데이터와 화면 데이터가 일치하는지 대조했다",
+      "테스트가 잘못된 구현을 승인하고 있지 않은지 의심했다",
+      "핵심 코드와 데이터 흐름을 내 말로 설명할 수 있다",
+      "원본을 보존하고 독립 경로로 대조했다",
+    ] },
+    ],
+  },
+  {
+    id: "ask", icon: "❓", title: "질문할 때",
+    tpl: { name: "질문 4줄 템플릿", text: "확인 필요한 것:\n왜 필요한가:\n확인 전까지 무엇을 보류할 것인가:\n내가 권하는 선택:" },
+    groups: [
+    { items: [
+      "몇 시간 혼자 고민하지 않고 바로 질문했다",
+      "\"모른다\"만 말하지 않고 이유 + 임시 처리안 + 제안을 붙였다",
+      "복잡해짐·지연 가능성을 숨기지 않고 조기 공유했다",
+    ] },
+    ],
+  },
+  {
+    id: "report", icon: "📋", title: "보고할 때",
+    tpl: { name: "보고 5줄 템플릿", text: "목표: 오늘 무엇을 판단할 수 있게 했는지\n결과물: 화면·표·링크·파일\n확인된 사실: 데이터로 검증된 내용\n미확인 사항: 현장 확인·대표 결정 필요\n다음 단계: 가장 중요한 1~2개" },
+    groups: [
+    { items: [
+      "\"열심히 했다\"가 아니라 \"무엇을 판단 가능하게 했는지\"로 보고했다",
+      "완성품 대신 검토 가능한 중간 결과를 먼저 공유했다",
+      "산출물 단계를 명시했다 (초안 / 검증본 / 시연본 / 배포본)",
+    ] },
+    ],
+  },
+  {
+    id: "night", icon: "🌙", title: "하루 마무리할 때",
+    groups: [
+    { items: [
+      "오늘의 최소 범위를 정규 업무시간 안에 닫았다",
+      "야근으로 범위 초과를 메우지 않았다",
+      "내일 닫을 것 1~2개만 정해뒀다",
+      "반복해서 지킬 규칙이 생겼다면 프로젝트 MD 지침에 기록했다",
+    ] },
+    ],
+  },
+];
+// </checklist:sections>
+
+const KEY = "checklist-state";
+let state = { checked:{}, open:{ morning:true }, startedAt:null, startedDate:null, history:[],
+              edits:{ removed:{}, text:{}, added:{} }, nextItemId:1 };
+
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+const DEFAULT_TEXT = {};
+SECTIONS.forEach(sec=>{ let i=0; sec.groups.forEach(g=>g.items.forEach(t=>{ DEFAULT_TEXT[sec.id+"-"+(i++)] = t; })); });
+
+/* 기본 항목(SECTIONS) 위에 사용자 편집(state.edits: 삭제·문구 수정·추가)을 겹쳐 실제 목록을 만든다.
+   기본 항목 id는 정의 순서 기준으로 고정 — 항목을 지워도 남은 항목의 체크 기록이 밀리지 않는다 */
+function effectiveSections(){
+  return SECTIONS.map(sec=>{
+    let i = 0;
+    return { id:sec.id, icon:sec.icon, title:sec.title, tpl:sec.tpl,
+      groups: sec.groups.map((g,gi)=>{
+        const items = [];
+        g.items.forEach(t=>{
+          const id = sec.id + "-" + (i++);
+          if(!state.edits.removed[id]) items.push({ id, text: state.edits.text[id] !== undefined ? state.edits.text[id] : t });
+        });
+        (state.edits.added[sec.id+":"+gi]||[]).forEach(it=>items.push({ id:it.id, text:it.text }));
+        return { label:g.label, neg:g.neg, gi, items };
+      })
+    };
+  });
+}
+
+let editMode = false;
+
+function renderSections(){
+  const day = document.getElementById("day");
+  day.innerHTML = effectiveSections().map(sec=>{
+    const groups = sec.groups.map(g=>{
+      const label = g.label ? `<div class="group-label${g.neg?" no":""}">${esc(g.label)}</div>` : "";
+      const items = g.items.map(it=> editMode
+        ? `<div class="item-edit${g.neg?" neg":""}"><button class="del" data-del="${it.id}" aria-label="항목 삭제">✕</button><button class="txt" data-edit="${it.id}">${esc(it.text)}</button></div>`
+        : `<label class="item${g.neg?" neg":""}"><input type="checkbox" data-id="${it.id}"><span>${esc(it.text)}</span></label>`
+      ).join("");
+      const add = editMode ? `<button class="add-item" data-add="${sec.id}:${g.gi}">＋ 항목 추가</button>` : "";
+      return label + items + add;
+    }).join("");
+    const tpl = sec.tpl ? `
+      <div class="tpl">
+        <div class="tpl-head"><b>${esc(sec.tpl.name)}</b>
+          <button class="copy" data-copy="${esc(sec.tpl.text)}">복사</button></div>
+        <pre>${esc(sec.tpl.text)}</pre>
+      </div>` : "";
+    return `
+    <section id="sec-${sec.id}">
+      <div class="dot" aria-hidden="true">${sec.icon}</div>
+      <div class="card">
+        <button class="sec-head" data-sec="${sec.id}" aria-expanded="false">
+          <div class="sec-title">${esc(sec.title)}</div>
+          <div class="sec-count" data-count="${sec.id}"></div>
+          <div class="chev">▼</div>
+        </button>
+        <div class="sec-body">${groups}${tpl}</div>
+      </div>
+    </section>`;
+  }).join("");
+}
+
+function bindDayEvents(){
+  const day = document.getElementById("day");
+  day.addEventListener("change", e=>{
+    const box = e.target.closest("input[type=checkbox]");
+    if(!box) return;
+    state.checked[box.dataset.id] = box.checked;
+    if(!box.checked) delete state.checked[box.dataset.id];
+    refresh(); save();
+  });
+  day.addEventListener("click", e=>{
+    const head = e.target.closest(".sec-head");
+    if(head){
+      const id = head.dataset.sec;
+      state.open[id] = !state.open[id];
+      refresh(); save(); return;
+    }
+    const cp = e.target.closest(".copy");
+    if(cp){
+      navigator.clipboard.writeText(cp.dataset.copy)
+        .then(()=>toast("템플릿을 복사했어요"))
+        .catch(()=>toast("복사에 실패했어요 — 길게 눌러 복사해 주세요"));
+      return;
+    }
+    const add = e.target.closest("[data-add]");
+    if(add){ addItem(add.dataset.add); return; }
+    const ed = e.target.closest("[data-edit]");
+    if(ed){ editItem(ed.dataset.edit); return; }
+    const del = e.target.closest("[data-del]");
+    if(del){ removeItem(del.dataset.del); return; }
+  });
+}
+
+/* ── 항목 편집 ── */
+function findAdded(id){
+  for(const k in state.edits.added){
+    const it = state.edits.added[k].find(x=>x.id===id);
+    if(it) return it;
+  }
+  return null;
+}
+function addItem(groupKey){
+  const t = prompt("추가할 항목 내용을 입력하세요");
+  if(t === null) return;
+  const text = t.trim();
+  if(!text) return;
+  if(!state.edits.added[groupKey]) state.edits.added[groupKey] = [];
+  state.edits.added[groupKey].push({ id:"u"+(state.nextItemId++), text:text });
+  renderSections(); refresh(); save();
+}
+function editItem(id){
+  const isDefault = DEFAULT_TEXT[id] !== undefined;
+  const current = isDefault
+    ? (state.edits.text[id] !== undefined ? state.edits.text[id] : DEFAULT_TEXT[id])
+    : (findAdded(id) || {}).text;
+  if(current === undefined) return;
+  const t = prompt("항목 내용을 수정하세요", current);
+  if(t === null) return;
+  const text = t.trim();
+  if(!text) return;
+  if(isDefault){
+    if(text === DEFAULT_TEXT[id]) delete state.edits.text[id];
+    else state.edits.text[id] = text;
+  }else{
+    const it = findAdded(id);
+    if(it) it.text = text;
+  }
+  renderSections(); refresh(); save();
+}
+function removeItem(id){
+  if(DEFAULT_TEXT[id] !== undefined){
+    state.edits.removed[id] = true;
+  }else{
+    for(const k in state.edits.added){
+      const i = state.edits.added[k].findIndex(x=>x.id===id);
+      if(i >= 0){ state.edits.added[k].splice(i,1); break; }
+    }
+  }
+  delete state.checked[id];
+  renderSections(); refresh(); save();
+}
+function setEditMode(on){
+  editMode = on;
+  document.getElementById("editBtn").textContent = on ? "완료" : "편집";
+  document.getElementById("restoreBtn").hidden = !on;
+  document.getElementById("resetBtn").hidden = on;
+  renderSections(); refresh();
+  if(on) toast("항목을 눌러 수정하고, ✕로 삭제할 수 있어요");
+}
+
+function refresh(){
+  const c = computeCounts();
+  SECTIONS.forEach(sec=>{
+    const [d,t] = c.sec[sec.id];
+    const el = document.getElementById("sec-"+sec.id);
+    el.querySelectorAll("input[type=checkbox]").forEach(b=>{ b.checked = !!state.checked[b.dataset.id]; });
+    el.classList.toggle("done", t>0 && d===t);
+    el.classList.toggle("open", !!state.open[sec.id]);
+    el.querySelector(".sec-head").setAttribute("aria-expanded", !!state.open[sec.id]);
+    el.querySelector(`[data-count="${sec.id}"]`).textContent = `${d}/${t}`;
+  });
+  const pct = c.total ? Math.round(c.done/c.total*100) : 0;
+  document.getElementById("overallBar").style.width = pct+"%";
+  document.getElementById("overallPct").textContent = pct+"%";
+  const st = document.getElementById("status");
+  st.textContent = state.startedAt
+    ? `${state.startedAt} 시작 · ${c.done}/${c.total} 완료`
+    : `${c.done}/${c.total} 완료`;
+  renderHistory();
+}
+
+/* ── 날짜별 히스토리 ── */
+function todayKey(){
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`;
+}
+function computeCounts(){
+  let total=0, done=0; const sec={};
+  effectiveSections().forEach(s=>{
+    let t=0, d=0;
+    s.groups.forEach(g=>g.items.forEach(it=>{ t++; if(state.checked[it.id]) d++; }));
+    sec[s.id]=[d,t]; total+=t; done+=d;
+  });
+  return {done,total,sec};
+}
+/* 체크가 하나라도 있어야 기록하고, 같은 날짜엔 최대 진행률만 남긴다
+   — "새 하루 시작" 직후의 0% 저장이 그날 기록을 지우지 않게 하기 위함 */
+function updateHistory(){
+  const c = computeCounts();
+  if(!c.done) return;
+  const date = state.startedDate || todayKey();
+  const prev = state.history.find(h=>h.date===date);
+  if(prev){
+    if(c.done >= prev.done){ prev.done=c.done; prev.total=c.total; prev.sec=c.sec; }
+  }else{
+    state.history.push({date:date, done:c.done, total:c.total, sec:c.sec});
+  }
+  if(state.history.length>120) state.history = state.history.slice(-120);
+}
+function dateLabel(key){
+  const p = key.split("-").map(Number);
+  if(p.length!==3 || p.some(isNaN)) return key;
+  const wd = ["일","월","화","수","목","금","토"][new Date(p[0],p[1]-1,p[2]).getDay()];
+  return `${p[1]}/${p[2]} (${wd})`;
+}
+function renderHistory(){
+  const el = document.getElementById("sec-history");
+  el.classList.toggle("open", !!state.open.history);
+  el.querySelector(".sec-head").setAttribute("aria-expanded", !!state.open.history);
+  document.getElementById("historyCount").textContent = `${state.history.length}일`;
+  const body = document.getElementById("historyBody");
+  if(!state.history.length){
+    body.innerHTML = `<div class="h-empty">아직 기록이 없어요 — 체크하면 날짜별로 자동 저장돼요.</div>`;
+    return;
+  }
+  const cur = state.startedDate || todayKey();
+  body.innerHTML = state.history.slice().sort((a,b)=>a.date<b.date?1:-1).map(h=>{
+    const pct = h.total ? Math.round(h.done/h.total*100) : 0;
+    const badge = h.date===todayKey() ? `<span class="h-today">오늘</span>`
+                : h.date===cur ? `<span class="h-today">진행 중</span>` : "";
+    return `<div class="h-row">
+      <div class="h-date">${esc(dateLabel(h.date))}${badge}</div>
+      <div class="h-bar"><i style="width:${pct}%"></i></div>
+      <div class="h-count">${h.done}/${h.total} · ${pct}%</div>
+    </div>`;
+  }).join("");
+}
+
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"), 1800);
+}
+
+/* claude.ai 아티팩트에서는 window.storage 제공, 로컬 브라우저에는 없어 localStorage로 대체 */
+const hasArtifactStorage = typeof window.storage !== "undefined" && typeof window.storage.set === "function";
+
+async function save(){
+  try{
+    updateHistory();
+    renderHistory();
+    const data = JSON.stringify(state);
+    if(hasArtifactStorage) await window.storage.set(KEY, data);
+    else localStorage.setItem(KEY, data);
+  }catch(e){ console.error("save failed", e); }
+}
+async function load(){
+  try{
+    let raw = null;
+    if(hasArtifactStorage){
+      const r = await window.storage.get(KEY);
+      raw = r && r.value;
+    }else{
+      raw = localStorage.getItem(KEY);
+    }
+    if(raw) state = Object.assign(state, JSON.parse(raw));
+    if(!Array.isArray(state.history)) state.history = [];
+    if(!state.edits || typeof state.edits !== "object") state.edits = {};
+    if(!state.edits.removed) state.edits.removed = {};
+    if(!state.edits.text) state.edits.text = {};
+    if(!state.edits.added) state.edits.added = {};
+    if(!(state.nextItemId >= 1)) state.nextItemId = 1;
+    for(const k in state.edits.added) state.edits.added[k].forEach(it=>{
+      const m = /^u(\d+)$/.exec(it.id);
+      if(m && Number(m[1]) >= state.nextItemId) state.nextItemId = Number(m[1]) + 1;
+    });
+  }catch(e){ /* first run — no saved state */ }
+}
+
+document.getElementById("editBtn").addEventListener("click", ()=>setEditMode(!editMode));
+document.getElementById("restoreBtn").addEventListener("click", ()=>{
+  if(!confirm("삭제하거나 문구를 수정한 기본 항목을 모두 되돌릴까요?\n(직접 추가한 항목은 그대로 유지됩니다)")) return;
+  state.edits.removed = {};
+  state.edits.text = {};
+  renderSections(); refresh(); save();
+  toast("기본 항목을 복원했어요");
+});
+
+document.getElementById("historyHead").addEventListener("click", ()=>{
+  state.open.history = !state.open.history;
+  renderHistory(); save();
+});
+
+document.getElementById("resetBtn").addEventListener("click", async ()=>{
+  if(!confirm("체크를 모두 지우고 새 하루를 시작할까요?")) return;
+  const now = new Date();
+  state.checked = {};
+  state.startedAt = `${now.getMonth()+1}/${now.getDate()}`;
+  state.startedDate = todayKey();
+  state.open = { morning:true, history: state.open.history };
+  refresh(); await save();
+  toast("새 하루를 시작했어요 🌅");
+  window.scrollTo({top:0});
+});
+
+(async ()=>{
+  bindDayEvents();
+  await load();
+  renderSections();
+  refresh();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+    "schemaVersion": 1,
+    "product": "ASKTodoHub",
+    "version": "0.2.1",
+    "builtAtUtc": "2026-07-22T10:54:44.0094913Z",
+    "downloadBaseUrl": "https://harness-meeting-app.kibayerin.workers.dev/downloads/ask-todo-hub/",
+    "assets": [
+        {
+            "type": "installer",
+            "name": "ASKTodoHub-Setup.exe",
+            "sizeBytes": 110592,
+            "sha256": "06c0eef091cacbf9602924f1d183343124ea42791d63a69627ad74c9e08d7518"
+        },
+        {
+            "type": "installer-latest-alias",
+            "name": "ASKTodoHub-Setup-latest.exe",
+            "sizeBytes": 110592,
+            "sha256": "06c0eef091cacbf9602924f1d183343124ea42791d63a69627ad74c9e08d7518"
+        },
+        {
+            "type": "portable-stable",
+            "name": "ASKTodoHub-portable.zip",
+            "sizeBytes": 99540,
+            "sha256": "c6486012d162817ed2938b7e0f445c470376b8d14ad615254fb029d8dd64c99d"
+        },
+        {
+            "type": "portable-versioned",
+            "name": "ASKTodoHub-0.2.1-portable.zip",
+            "sizeBytes": 99540,
+            "sha256": "c6486012d162817ed2938b7e0f445c470376b8d14ad615254fb029d8dd64c99d"
+        }
+    ]
+}

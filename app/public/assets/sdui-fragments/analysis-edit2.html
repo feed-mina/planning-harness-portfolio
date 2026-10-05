@@ -1,0 +1,333 @@
+﻿<h1>분석설계 - (수정중)</h1>
+      <p class="lead">자료를 올리면 AI가 계산식, 근거, 확인할 점, 결과 리포트를 한 흐름으로 정리합니다.
+        <span class="usage-pill" data-usage>…</span></p>
+      <div class="start-modes" aria-label="분석 시작 방식">
+        <button id="btnStartAnalysis" class="btn btn-dark" type="button">분석만 시작</button>
+        <button id="btnStartMeeting" class="btn btn-ghost" type="button">회의록에서 시작</button>
+      </div>
+      <div class="office-task-cards" aria-label="오늘 할 일">
+        <button type="button" data-office-jump="5">
+          <strong>1. 자료 올리기</strong>
+          <span>PDF·엑셀·회의자료를 등록합니다.</span>
+        </button>
+        <button type="button" data-office-jump="6">
+          <strong>2. AI 분석 시작</strong>
+          <span>계산식, 근거, 확인할 일을 정리합니다.</span>
+        </button>
+        <button type="button" data-office-jump="9">
+          <strong>3. 보고서 확인</strong>
+          <span>근거 하이라이트와 저장 파일을 확인합니다.</span>
+        </button>
+      </div>
+
+      <!-- 상단 업무 흐름 -->
+      <div class="flow-panel edit-flow-panel" aria-label="분석설계 수정 업무 흐름">
+        <div class="flow-track">
+          <section class="flow-lane flow-lane-primary" aria-label="분석 공통 흐름">
+            <div class="flow-lane-title"><span>공공·정책·원가</span><strong>분석 검토</strong></div>
+            <div class="flow-steps">
+              <button class="flow-step" type="button" data-flow-step="4" data-flow-picker><span class="flow-no">1</span><span>회의록</span></button>
+              <button class="flow-step" type="button" data-flow-step="5"><span class="flow-no">2</span><span>자료 준비</span></button>
+              <button class="flow-step is-locked" type="button" data-flow-step="6"><span class="flow-no">3</span><span>AI 분석</span></button>
+              <button class="flow-step is-locked" type="button" data-flow-step="9"><span class="flow-no">4</span><span>결과 리포트</span></button>
+            </div>
+          </section>
+        </div>
+      </div>
+      <p class="hint status-line" id="pageStatus">회의록과 분석파일이 없어도 기대 산출물 기준으로 검색형 분석을 실행할 수 있습니다.</p>
+
+      <!-- 1. 녹음텍스트 입력 -->
+      <section class="acc legacy-meeting-flow" id="card-1" data-card="1" hidden>
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">1</span><span class="acc-title">선택: 녹음텍스트 입력</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="rec-row">
+            <button id="btnRecStart" class="btn btn-primary">녹음 시작</button>
+            <button id="btnRecStop" class="btn btn-coral" disabled>녹음 종료</button>
+            <span id="timer" class="timer">00:00</span>
+            <span id="recDot" class="rec-dot" hidden></span>
+          </div>
+          <p class="hint" id="speechSupport"></p>
+          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="녹음 또는 자막 파일 선택" style="margin-top:14px">
+            <div class="mic">🎙️</div>
+            <div class="dz-title">녹음 또는 자막 파일 선택</div>
+            <div class="dz-sub">여기를 누르면 폴더가 열립니다. (.vtt · .srt · .txt · 오디오)</div>
+            <input type="file" id="fileInput" accept=".vtt,.srt,.txt,audio/*" hidden />
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 녹음텍스트 보기 -->
+      <section class="acc legacy-meeting-flow" id="card-2" data-card="2" hidden>
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">2</span><span class="acc-title">선택: 녹음텍스트 보기</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <label class="field-label" for="transcript">녹음텍스트 <span class="editable-tag">(직접 수정 가능)</span></label>
+          <textarea id="transcript" rows="7" placeholder="자막 파일을 선택하거나 녹음을 시작하면 여기에 텍스트가 채워집니다."></textarea>
+          <div class="meta-grid">
+            <label class="req">회의 날짜<input type="date" id="meetingDate" /></label>
+            <label>회의 시간 (선택)<input type="time" id="meetingTime" /></label>
+            <label>참석자 (선택)<input type="text" id="attendees" placeholder="@홍길동, @김철수" /></label>
+            <label>회의 주제 (선택)<input type="text" id="subject" placeholder="예: 주간 운영회의" /></label>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 회의록으로 변환 -->
+      <section class="acc legacy-meeting-flow" id="card-3" data-card="3" hidden>
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">3</span><span class="acc-title">선택: 회의록으로 변환</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <p class="hint">AI 프로바이더·모델·커스텀 프롬프트는 <a href="/mypage/">마이페이지</a> 설정을 사용합니다. 일반 데모 기본 모델은 gemini-2.5-pro입니다.</p>
+          <button id="btnAI" class="btn btn-dark btn-block">AI 요약 → 회의록 생성</button>
+          <p class="hint" id="genStatus">회의록이 있으면 5번 작업공간·자료 준비 단계에서 참고자료로 함께 반영됩니다.</p>
+        </div>
+      </section>
+
+      <!-- 4. 회의록 보기 & 수정 -->
+      <section class="acc" id="card-4" data-card="4" hidden>
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">1</span><span class="acc-title">회의록 보기 &amp; 수정</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <section id="meetingPicker" class="meeting-picker" hidden>
+            <div class="meeting-picker-head">
+              <div>
+                <strong>기존 회의록 선택</strong>
+                <p class="hint">마이페이지에 저장된 회의록을 가져와 아래 미리보기와 5번 작업공간·자료 준비에 반영합니다.</p>
+              </div>
+              <div class="result-actions compact-actions">
+                <button id="btnReloadMeetings" class="btn btn-ghost btn-small" type="button">새로고침</button>
+                <button id="btnNewMeetingFlow" class="btn btn-ghost btn-small" type="button">새 회의록 작성</button>
+              </div>
+            </div>
+            <label class="meeting-picker-filter">회의록 검색
+              <input type="search" id="meetingPickFilter" placeholder="제목 또는 날짜로 필터" />
+            </label>
+            <p id="meetingPickStatus" class="hint">회의록 목록을 불러오는 중...</p>
+            <div id="meetingPickList" class="meeting-pick-list"></div>
+          </section>
+          <div id="meetingResultPanel" hidden>
+            <div class="result-head">
+              <span class="field-label">회의록 <span class="editable-tag">(직접 수정 가능)</span></span>
+              <div class="view-toggle">
+                <button id="tabPreview" class="tab-btn active" type="button">👁 미리보기</button>
+                <button id="tabEdit" class="tab-btn" type="button">✏️ 편집</button>
+              </div>
+            </div>
+            <div id="mdPreview" class="md-preview"></div>
+            <textarea id="markdown" rows="14" spellcheck="false" hidden></textarea>
+            <div class="result-actions">
+              <button id="btnCopy" class="btn btn-ghost">📋 복사</button>
+              <span class="fname" id="fname"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 작업공간·자료 준비 (한 묶음 · 완료 게이트) -->
+      <section class="acc" id="card-5" data-card="5">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">2</span><span class="acc-title">작업공간·자료 준비 <span class="editable-tag">(여기서 시작 가능)</span></span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <div id="analysisScopeSduiMount"></div>
+          <div id="analysisFileUploaderSduiMount"></div>
+          <div id="analysisSupplementSduiMount"></div>
+          <p class="prep-status" id="prepStatus" hidden></p>
+          <div class="gate-row">
+            <input type="checkbox" id="prepDone" />
+            <label for="prepDone">입력 완료 — 기대 산출물 기준으로 검색형 AI 분석을 시작합니다</label>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. AI 분석 -->
+      <section class="acc locked" id="card-6" data-card="6">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">3</span><span class="acc-title">AI 분석</span>
+          <span class="acc-lock" data-lock>🔒 자료 준비 필요</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="locked-note">🔒 <strong>작업공간·자료 준비</strong>를 완료하면 열립니다.</div>
+          <div class="acc-real">
+            <div id="analysisRunControlsSduiMount"></div>
+
+            <div class="edit-run-outputs" id="editRunOutputs">
+              <section class="edit-work-panel edit-question-panel" hidden aria-hidden="true">
+                <div class="edit-section-head">
+                  <div>
+                    <span class="edit-eyebrow">확인할 점 자동 찾기</span>
+                    <h3>빠른 확인 질문</h3>
+                  </div>
+                  <small>답변하지 않으면 AI 추천값으로 진행합니다.</small>
+                </div>
+                <div id="editIdeaMount"></div>
+              </section>
+
+              <section class="edit-work-panel">
+                <div class="edit-section-head">
+                  <div>
+                    <span class="edit-eyebrow">작업 목록</span>
+                    <h3>AI가 정리한 검토 작업</h3>
+                  </div>
+                  <small>계산·근거·확인할 일을 업무 순서로 나눕니다.</small>
+                </div>
+                <div id="editPlanMount"></div>
+                <div class="result-actions edit-plan-actions">
+                  <button id="btnExecutePlans" class="btn btn-ghost btn-small" type="button">계산표 다시 반영</button>
+                </div>
+              </section>
+
+              <section class="edit-work-panel edit-calculation-panel">
+                <div class="edit-section-head">
+                  <div>
+                    <span class="edit-eyebrow">실무 검토</span>
+                    <h3>계산 확인</h3>
+                  </div>
+                  <small>금액과 근거만 먼저 확인합니다.</small>
+                </div>
+                <div id="editReviewSummarySduiMount"></div>
+                <div id="editResultContractsSduiMount"></div>
+                <div id="reviewFilterControlsSduiMount"></div>
+                <div id="editCalculationReview" class="edit-calculation-review">
+                  <p class="hint">자동 분석 후 계산 확인표가 표시됩니다.</p>
+                </div>
+              </section>
+
+              <div id="editOutputCardsSduiMount"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6-A. 표·수치 정규화 & 근거 매핑 (클라이언트 xlsx 파싱, 셀 단위 출처 보존) -->
+      <section class="acc locked" id="card-6a" data-card="6a">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">6A</span><span class="acc-title">표·수치 정규화 &amp; 근거 매핑</span>
+          <span class="acc-lock" data-lock>🔒 5번 완료 필요</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="locked-note">🔒 <strong>5. 작업공간·자료 준비</strong>를 완료하면 열립니다.</div>
+          <div class="acc-real">
+            <div id="costUploadShellSduiMount"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6-B. 간단 요약 (단가 산식 집계 + PDF 인사이트) -->
+      <section class="acc locked" id="card-6b" data-card="6b">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">6B</span><span class="acc-title">간단 요약</span>
+          <span class="acc-lock" data-lock>🔒 5번 완료 필요</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="locked-note">🔒 <strong>5. 작업공간·자료 준비</strong>를 완료하면 열립니다.</div>
+          <div class="acc-real">
+            <div id="boardSummaryShellSduiMount"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6-C. 단가 산식 추정 -->
+      <section class="acc locked" id="card-6c" data-card="6c">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">6C</span><span class="acc-title">단가 산식 추정</span>
+          <span class="acc-lock" data-lock>🔒 5번 완료 필요</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="locked-note">🔒 <strong>5. 작업공간·자료 준비</strong>를 완료하면 열립니다.</div>
+          <div class="acc-real">
+            <div id="heuristicShellSduiMount"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6-D. 상세 보고서 -->
+      <section class="acc locked" id="card-6d" data-card="6d">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">6D</span><span class="acc-title">상세 보고서</span>
+          <span class="acc-lock" data-lock>🔒 5번 완료 필요</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="locked-note">🔒 <strong>5. 작업공간·자료 준비</strong>를 완료하면 열립니다.</div>
+          <div class="acc-real">
+            <div id="deepReportShellSduiMount"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6-E. 법령·근거 매핑 -->
+      <section class="acc locked" id="card-6e" data-card="6e">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">6E</span><span class="acc-title">법령·근거 매핑</span>
+          <span class="acc-lock" data-lock>🔒 5번 완료 필요</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="locked-note">🔒 <strong>5. 작업공간·자료 준비</strong>를 완료하면 열립니다.</div>
+          <div class="acc-real">
+            <div id="evidenceMappingShellSduiMount"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6-F. Validation 화면 -->
+      <section class="acc locked" id="card-6f" data-card="6f">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">6F</span><span class="acc-title">Validation 화면</span>
+          <span class="acc-lock" data-lock>🔒 5번 완료 필요</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="locked-note">🔒 <strong>5. 작업공간·자료 준비</strong>를 완료하면 열립니다.</div>
+          <div class="acc-real">
+            <div id="validationShellSduiMount"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. 아이디어 도출 -->
+      <section class="acc locked" id="card-7" data-card="7">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">7</span><span class="acc-title">아이디어 도출</span>
+          <span class="acc-lock" data-lock>🔒 5번 완료 필요</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="locked-note">🔒 <strong>5. 작업공간·자료 준비</strong>를 완료하면 열립니다.</div>
+          <div class="acc-real">
+            <div id="ideaShellSduiMount"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. 분석 플랜 도출 (체크박스 선택) -->
+      <section class="acc locked" id="card-8" data-card="8">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">8</span><span class="acc-title">분석 플랜 도출</span>
+          <span class="acc-lock" data-lock>🔒 5번 완료 필요</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="locked-note">🔒 <strong>5. 작업공간·자료 준비</strong>를 완료하면 열립니다.</div>
+          <div class="acc-real">
+            <div id="planShellSduiMount"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9. 결과 리포트 -->
+      <section class="acc locked" id="card-9" data-card="9">
+        <button class="acc-head" type="button" aria-expanded="false">
+          <span class="acc-no">4</span><span class="acc-title">결과 리포트</span>
+          <span class="acc-lock" data-lock>🔒 자료 준비 필요</span><span class="acc-chevron">▾</span>
+        </button>
+        <div class="acc-body">
+          <div class="locked-note">🔒 <strong>작업공간·자료 준비</strong>를 완료하면 열립니다.</div>
+          <div class="acc-real">
+            <div id="reportOutputShellSduiMount"></div>
+          </div>
+        </div>
+      </section>
+
+      <p class="foot">기획 하네스 루프 프로젝트</p>

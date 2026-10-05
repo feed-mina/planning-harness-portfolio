@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Sidebar Smoke</title>
+  <style>
+    body { font-family: ui-sans-serif, Arial, sans-serif; padding: 20px; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+    .ok { color: #0a7a0a; }
+    .fail { color: #b00020; }
+  </style>
+  <script src="/assets/common.js"></script>
+  <script>
+    (function () {
+      document.addEventListener('DOMContentLoaded', () => {
+        const open = new URLSearchParams(location.search).get('open') === '1';
+        const navBody = () => document.getElementById('sidebar');
+        const output = document.getElementById('smokeOutput');
+        const attempt = () => {
+          const toggle = document.getElementById('navToggle');
+          if (!navBody() || !toggle) {
+            return { ok: false, reason: "sidebar or toggle missing" };
+          }
+          const shouldOpen = open;
+          const isOpen = navBody().classList.contains('open');
+          if (shouldOpen !== isOpen) {
+            toggle.click();
+          }
+          return {
+            ok: true,
+            open: navBody().classList.contains('open'),
+            ariaExpanded: (document.getElementById('navToggle') || {}).getAttribute ? document.getElementById('navToggle').getAttribute('aria-expanded') : null,
+            ariaHidden: navBody().getAttribute('aria-hidden'),
+          };
+        };
+        setTimeout(() => {
+          const state = attempt();
+          window.__sidebarState = state;
+          const result = {
+            ok: !!state.ok,
+            url: location.pathname + location.search,
+            openExpected: open,
+            openActual: state.open,
+            ariaExpanded: state.ariaExpanded,
+            ariaHidden: state.ariaHidden,
+            timestamp: new Date().toISOString(),
+          };
+          output.textContent = JSON.stringify(result, null, 2);
+          if (output) {
+            output.classList.toggle('ok', state.ok);
+            output.classList.toggle('fail', !state.ok);
+            output.textContent = state.ok
+              ? `PASS\n${JSON.stringify(result, null, 2)}`
+              : `FAIL\n${JSON.stringify({ ok: false, reason: state.reason }, null, 2)}`;
+          }
+          const marker = new URLSearchParams(location.search);
+          marker.set('result', state.ok ? 'pass' : 'fail');
+          marker.set('openActual', String(state.open || false));
+          marker.set('ariaExpanded', state.ariaExpanded || '');
+          marker.set('ariaHidden', state.ariaHidden || '');
+          history.replaceState({}, '', `${location.pathname}?${marker.toString()}`);
+        }, 200);
+      });
+    })();
+  </script>
+</head>
+<body data-page="dashboard">
+  <h2>Sidebar Smoke Result</h2>
+  <pre id="smokeOutput">running...</pre>
+</body>
+</html>

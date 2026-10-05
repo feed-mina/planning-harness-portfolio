@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NBlog 초안 입력</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <main>
+    <header>
+      <span class="eyebrow">PLANNING HARNESS</span>
+      <h1>NBlog 초안 입력</h1>
+      <p>빈 네이버 글쓰기 화면에서만 제목과 본문을 넣습니다.</p>
+    </header>
+
+    <form id="connectForm">
+      <label for="connectionCode">10분 연결 코드</label>
+      <textarea id="connectionCode" name="connectionCode" rows="4" spellcheck="false" autocomplete="off"
+        placeholder="NBLOG_HANDOFF_V1.…" required></textarea>
+      <button id="connectButton" type="submit">이 빈 초안에 입력</button>
+    </form>
+
+    <section id="status" class="status" aria-live="polite">
+      <strong>준비</strong>
+      <span>네이버 블로그 글쓰기 탭에서 실행하세요.</span>
+    </section>
+
+    <button id="retryButton" class="secondary" type="button" hidden>빈 초안에서 다시 확인</button>
+
+    <ul class="boundaries">
+      <li>로그인·보안 확인은 직접 진행</li>
+      <li>사진·영상·장소는 직접 추가</li>
+      <li>미리보기 후 발행 버튼은 직접 클릭</li>
+    </ul>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+export type DevSetupMethod = "winget" | "npm";
+export type DevSetupCategory = "app" | "cli" | "runtime";
+
+export interface DevSetupTool {
+  id: string;
+  name: string;
+  description: string;
+  method: DevSetupMethod;
+  packageId: string;
+  category: DevSetupCategory;
+  defaultSelected: boolean;
+  requires?: string[];
+  verified: "confirmed" | "fallback";
+}
+
+export interface DevSetupToolForApi extends DevSetupTool {
+  command: string;
+}
+
+export interface DevSetupPreview {
+  tools: DevSetupToolForApi[];
+  requestedIds: string[];
+  rejectedIds: string[];
+  commands: string[];
+  warnings: string[];
+}
+
+export interface DevSetupSelection {
+  tools: DevSetupTool[];
+  requestedIds: string[];
+  rejectedIds: string[];
+  warnings: string[];
+}
+
+const DEV_SETUP_TOOLS: DevSetupTool[] = [
+  {
+    id: "vscode",
+    name: "VS Code",
+    description: "코드 편집기",
+    method: "winget",
+    packageId: "Microsoft.VisualStudioCode",
+    category: "app",
+    defaultSelected: true,
+    verified: "confirmed",
+  },
+  {
+    id: "git",
+    name: "Git Bash",
+    description: "Git CLI와 Git Bash",
+    method: "winget",
+    packageId: "Git.Git",
+    category: "app",
+    defaultSelected: true,
+    verified: "confirmed",
+  },
+  {
+    id: "notepadpp",
+    name: "Notepad++",
+    description: "가벼운 텍스트 편집기",
+    method: "winget",
+    packageId: "Notepad++.Notepad++",
+    category: "app",
+    defaultSelected: true,
+    verified: "confirmed",
+  },
+  {
+    id: "obsidian",
+    name: "Obsidian",
+    description: "로컬 Markdown 노트",
+    method: "winget",
+    packageId: "Obsidian.Obsidian",
+    category: "app",
+    defaultSelected: true,
+    verified: "confirmed",
+  },
+  {
+    id: "docker-desktop",
+    name: "Docker Desktop",
+    description: "컨테이너 기반 개발 환경",
+    method: "winget",
+    packageId: "Docker.DockerDesktop",
+    category: "app",
+    defaultSelected: false,
+    verified: "confirmed",
+  },
+  {
+    id: "nodejs",
+    name: "Node.js LTS",
+    description: "Claude Code와 Codex CLI 설치에 필요한 런타임",
+    method: "winget",
+    packageId: "OpenJS.NodeJS.LTS",
+    category: "runtime",
+    defaultSelected: false,
+    verified: "confirmed",
+  },
+  {
+    id: "claude-code",
+    name: "Claude Code",
+    description: "Anthropic Claude Code CLI",
+    method: "npm",
+    packageId: "@anthropic-ai/claude-code",
+    category: "cli",
+    defaultSelected: true,
+    requires: ["nodejs"],
+    verified: "fallback",
+  },
+  {
+    id: "codex",
+    name: "Codex",
+    description: "OpenAI Codex CLI",
+    method: "npm",
+    packageId: "@openai/codex",
+    category: "cli",
+    defaultSelected: true,
+    requires: ["nodejs"],
+    verified: "fallback",
+  },
+];
+
+const TOOL_BY_ID = new Map(DEV_SETUP_TOOLS.map((tool) => [tool.id, tool]));
+
+export function getDevSetupCatalog(): DevSetupToolForApi[] {
+  return DEV_SETUP_TOOLS.map((tool) => ({ ...tool, command: commandForTool(tool) }));
+}
+
+export function defaultDevSetupToolIds(): string[] {
+  return DEV_SETUP_TOOLS.filter((tool) => tool.defaultSelected).map((tool) => tool.id);
+}
+
+export function resolveDevSetupSelection(inputIds: unknown): DevSetupSelection {
+  const rawIds = Array.isArray(inputIds) ? inputIds : defaultDevSetupToolIds();
+  const requestedIds = rawIds.filter((id): id is string => typeof id === "string");
+  const selected = new Map<string, DevSetupTool>();
+  const rejectedIds: string[] = [];
+
+  const addTool = (id: string) => {
+    const tool = TOOL_BY_ID.get(id);
+    if (!tool) {
+      rejectedIds.push(id);
+      return;
+    }
+    selected.set(tool.id, tool);
+    for (const requiredId of tool.requires || []) addTool(requiredId);
+  };
+
+  for (const id of requestedIds) addTool(id);
+
+  const tools = DEV_SETUP_TOOLS.filter((tool) => selected.has(tool.id));
+  const warnings = [
+    "브라우저는 직접 설치를 실행하지 않습니다. 스크립트를 내려받아 내용을 확인한 뒤 로컬 PowerShell에서 실행합니다.",
+    "winget이 없으면 App Installer 설치를 시도하고, 실패 시 Microsoft Store 설치 안내로 중단합니다.",
+  ];
+  if (tools.some((tool) => tool.verified === "fallback")) {
+    warnings.push("Claude Code와 Codex는 현재 npm 전역 설치 경로를 기본값으로 사용합니다.");
+  }
+  if (rejectedIds.length) {
+    warnings.push(`허용 목록에 없는 항목은 제외했습니다: ${rejectedIds.join(", ")}`);
+  }
+
+  return { tools, requestedIds, rejectedIds, warnings };
+}
+
+export function buildDevSetupPreview(inputIds: unknown): DevSetupPreview {
+  const selection = resolveDevSetupSelection(inputIds);
+  return {
+    ...selection,
+    tools: selection.tools.map((tool) => ({ ...tool, command: commandForTool(tool) })),
+    commands: selection.tools.map(commandForTool),
+  };
+}
+
+export function buildDevSetupScript(inputIds: unknown): string {
+  const selection = resolveDevSetupSelection(inputIds);
+  if (!selection.tools.length) throw Object.assign(new Error("설치할 도구를 하나 이상 선택하세요."), { status: 400 });
+
+  const generatedAt = new Date().toISOString();
+  const toolsJson = JSON.stringify(selection.tools.map((tool) => ({
+    id: tool.id,
+    name: tool.name,
+    method: tool.method,
+    packageId: tool.packageId,
+  })), null, 2);
+
+  return `# dev-setup.ps1
+# Generated by planning-harness at ${generatedAt}
+# Installs the selected Windows development tools through winget/npm.
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+$ToolsJson = @'
+${toolsJson}
+'@
+$Tools = @($ToolsJson | ConvertFrom-Json)
+$Results = New-Object System.Collections.Generic.List[object]
+
+function Add-InstallResult {
+  param([string]$Tool, [string]$Status, [string]$Message)
+  $Results.Add([pscustomobject]@{ Tool = $Tool; Status = $Status; Message = $Message }) | Out-Null
+}
+
+function Test-IsWindows {
+  return $env:OS -eq "Windows_NT"
+}
+
+function Test-IsAdmin {
+  $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+  $principal = New-Object Security.Principal.WindowsPrincipal($identity)
+  return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+function Restart-AsAdmin {
+  if (-not $PSCommandPath) {
+    throw "스크립트 파일 경로를 확인할 수 없습니다. dev-setup.ps1 파일로 저장한 뒤 실행하세요."
+  }
+  Write-Host "관리자 권한으로 PowerShell을 다시 실행합니다..."
+  $scriptPath = '"' + $PSCommandPath + '"'
+  $args = @("-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $scriptPath)
+  Start-Process -FilePath "powershell.exe" -ArgumentList $args -Verb RunAs
+}
+
+function Ensure-Winget {
+  if (Get-Command winget -ErrorAction SilentlyContinue) {
+    Write-Host "winget 확인 완료."
+    return $true
+  }
+
+  Write-Warning "winget을 찾을 수 없습니다. Microsoft App Installer 설치를 시도합니다."
+  $installerPath = Join-Path $env:TEMP "Microsoft.DesktopAppInstaller.msixbundle"
+  try {
+    Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile $installerPath -UseBasicParsing
+    Add-AppxPackage -Path $installerPath
+  } catch {
+    Write-Warning ("App Installer 자동 설치 실패: " + $_.Exception.Message)
+  }
+
+  if (Get-Command winget -ErrorAction SilentlyContinue) {
+    Write-Host "winget 설치 확인 완료."
+    return $true
+  }
+
+  Write-Warning "winget 자동 준비에 실패했습니다. Microsoft Store에서 App Installer를 설치한 뒤 다시 실행하세요."
+  Write-Host "Store 링크: ms-windows-store://pdp/?ProductId=9NBLGGH4NNS1"
+  try { Start-Process "ms-windows-store://pdp/?ProductId=9NBLGGH4NNS1" } catch { }
+  return $false
+}
+
+function Install-WingetPackage {
+  param([string]$Name, [string]$PackageId)
+  Write-Host ""
+  Write-Host "[winget] $Name ($PackageId)"
+  winget install --id $PackageId --exact --accept-package-agreements --accept-source-agreements
+  if ($PackageId -eq "OpenJS.NodeJS.LTS") {
+    Refresh-Path
+  }
+}
+
+function Refresh-Path {
+  $machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+  $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+  $env:Path = @($machinePath, $userPath) -join ";"
+}
+
+function Install-NpmPackage {
+  param([string]$Name, [string]$PackageId)
+  Write-Host ""
+  Write-Host "[npm] $Name ($PackageId)"
+  if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
+    Refresh-Path
+  }
+  if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
+    throw "npm을 찾을 수 없습니다. Node.js 설치 후 새 PowerShell에서 다시 실행하세요."
+  }
+  npm install --global $PackageId
+}
+
+if (-not (Test-IsWindows)) {
+  Write-Error "이 스크립트는 Windows 전용입니다."
+  exit 1
+}
+
+if (-not (Test-IsAdmin)) {
+  Restart-AsAdmin
+  exit 0
+}
+
+Write-Host "설치 대상:"
+foreach ($tool in $Tools) {
+  Write-Host ("- " + $tool.name + " [" + $tool.method + ": " + $tool.packageId + "]")
+}
+
+$NeedsWinget = @($Tools | Where-Object { $_.method -eq "winget" }).Count -gt 0
+if ($NeedsWinget -and -not (Ensure-Winget)) {
+  foreach ($tool in $Tools) {
+    if ($tool.method -eq "winget") { Add-InstallResult $tool.name "SKIP" "winget 준비 실패" }
+  }
+  $Results | Format-Table -AutoSize
+  exit 1
+}
+
+foreach ($tool in $Tools) {
+  try {
+    if ($tool.method -eq "winget") {
+      Install-WingetPackage $tool.name $tool.packageId
+    } elseif ($tool.method -eq "npm") {
+      Install-NpmPackage $tool.name $tool.packageId
+    } else {
+      throw ("알 수 없는 설치 방식: " + $tool.method)
+    }
+    Add-InstallResult $tool.name "OK" "설치 명령 완료"
+  } catch {
+    Add-InstallResult $tool.name "FAIL" $_.Exception.Message
+    Write-Warning ($tool.name + " 설치 실패: " + $_.Exception.Message)
+  }
+}
+
+Write-Host ""
+Write-Host "설치 결과 요약"
+$Results | Format-Table -AutoSize
+
+if (@($Results | Where-Object { $_.Status -eq "FAIL" }).Count -gt 0) {
+  exit 1
+}
+`;
+}
+
+function commandForTool(tool: DevSetupTool): string {
+  if (tool.method === "winget") {
+    return `winget install --id ${tool.packageId} --exact --accept-package-agreements --accept-source-agreements`;
+  }
+  return `npm install --global ${tool.packageId}`;
+}

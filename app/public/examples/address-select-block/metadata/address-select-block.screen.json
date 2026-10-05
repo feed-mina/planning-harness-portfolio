@@ -1,0 +1,115 @@
+{
+  "schema": "feedmina.address-select-block.v1",
+  "id": "address-select-block",
+  "name": "Address Select Block",
+  "status": "draft",
+  "evidence": {
+    "currentEditorRepository": {
+      "repo": "feed-mina/sdui-template-kit-productization",
+      "access": "unavailable",
+      "verified": false
+    },
+    "webBaseline": {
+      "repo": "feed-mina/SDUI",
+      "branch": "main",
+      "commit": "9705ae6c6f5ca23a73d877c563f5e7f49a2b6409",
+      "files": [
+        "metadata-project/components/fields/AddressSearchGroup.tsx",
+        "metadata-project/components/DynamicEngine/hook/useUserActions.tsx"
+      ]
+    },
+    "mobileBaseline": {
+      "repo": "feed-mina/KMovement",
+      "branch": "main",
+      "commit": "82e0f861d6fc35c17ac11e25e75e503ac541ed45",
+      "files": [
+        "subproject/SDUI/kride/packages/core/src/hooks/useBusinessActions.ts",
+        "subproject/SDUI/kride/apps/mobile/src/componentMap.tsx"
+      ]
+    }
+  },
+  "editorBlock": {
+    "component_type": "ADDRESS_BLOCK",
+    "value": {
+      "zipCode": "",
+      "roadAddress": "",
+      "detailAddress": ""
+    },
+    "options": {
+      "label": "주소",
+      "required": true,
+      "provider": "mock",
+      "previewMode": true
+    },
+    "events": [
+      "OPEN_POSTCODE",
+      "ADDRESS_SELECTED",
+      "ADDRESS_CLEARED",
+      "INPUT_CHANGED",
+      "ERROR"
+    ],
+    "states": [
+      "idle",
+      "searching",
+      "selected",
+      "error"
+    ]
+  },
+  "compileTargets": {
+    "cloudflare-worker-static": {
+      "previewAdapter": "mock",
+      "realAdapter": "web-daum",
+      "normalizedValueKeys": [
+        "zipCode",
+        "roadAddress",
+        "detailAddress"
+      ],
+      "compiledSdui": {
+        "componentTypes": [
+          "GROUP",
+          "INPUT",
+          "BUTTON",
+          "MODAL"
+        ],
+        "actionTypes": [
+          "OPEN_POSTCODE"
+        ],
+        "fieldKeyMap": {
+          "zipCode": "zip_code",
+          "roadAddress": "road_address",
+          "detailAddress": "detail_address"
+        }
+      }
+    },
+    "react-next": {
+      "previewAdapter": "mock",
+      "realAdapter": "mobile-native",
+      "normalizedValueKeys": [
+        "zipCode",
+        "roadAddress",
+        "detailAddress"
+      ],
+      "compiledRuntime": {
+        "stateCarrier": "formData",
+        "providerHook": "navigation.openPostcode",
+        "fieldKeyMap": {
+          "zipCode": "zipCode",
+          "roadAddress": "roadAddress",
+          "detailAddress": "detailAddress"
+        }
+      }
+    }
+  },
+  "validation": {
+    "previewChecks": [
+      "mock provider does not call external address services",
+      "zipCode, roadAddress, detailAddress are all returned in onChange",
+      "readonly and editable fields remain distinct in preview"
+    ],
+    "realChecks": [
+      "web provider writes postcode selection into form state",
+      "mobile provider writes postcode selection into navigation-backed state",
+      "provider failures emit ERROR without copying raw secret values"
+    ]
+  }
+}

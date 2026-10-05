@@ -1,0 +1,116 @@
+﻿<h1>사용량 통계</h1>
+      <p class="lead">provider별·일자별 토큰 사용량과 AI 사용액(원). <span class="usage-pill" data-usage>…</span></p>
+
+      <div class="grid2">
+        <div class="panel"><div class="field-label">오늘 AI 사용액</div><div class="stat-num" id="todayCost">–</div></div>
+        <div class="panel"><div class="field-label">오늘 남은 한도</div><div class="stat-num" id="remain">–</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="result-head">
+          <div class="field-label">비용 대시보드</div>
+          <div class="period-toggle" id="costPeriodToggle" role="tablist" aria-label="비용 기간">
+            <button class="period-btn active" type="button" data-period="day" role="tab" aria-selected="true">일</button>
+            <button class="period-btn" type="button" data-period="week" role="tab" aria-selected="false">주</button>
+            <button class="period-btn" type="button" data-period="month" role="tab" aria-selected="false">월</button>
+          </div>
+        </div>
+        <div class="cost-kpi-grid">
+          <div>
+            <span>기간 비용 합계</span>
+            <strong id="periodCost">–</strong>
+          </div>
+          <div>
+            <span>기간 예산</span>
+            <strong id="periodBudget">–</strong>
+          </div>
+          <div>
+            <span>소진율</span>
+            <strong id="budgetRate">–</strong>
+          </div>
+        </div>
+        <div class="budget-meter" aria-label="예산 소진율"><span id="budgetFill"></span></div>
+        <p class="hint" id="periodSummary">기간별 비용을 불러오는 중…</p>
+      </div>
+
+      <div class="panel">
+        <div class="field-label">선택 기간 일자별 AI 사용액(원)</div>
+        <canvas id="dailyChart" height="140"></canvas>
+        <p class="hint" id="dailyEmpty" hidden>아직 사용 기록이 없습니다.</p>
+      </div>
+
+      <div class="panel">
+        <div class="field-label">provider별 AI 사용액 비중</div>
+        <div style="max-width:320px;margin:0 auto"><canvas id="providerChart" height="220"></canvas></div>
+        <p class="hint" id="provEmpty" hidden>아직 사용 기록이 없습니다.</p>
+      </div>
+
+      <div class="panel">
+        <div class="field-label">입력·출력·캐시 토큰 분해</div>
+        <canvas id="tokenChart" height="140"></canvas>
+        <p class="hint" id="tokenEmpty" hidden>아직 토큰 기록이 없습니다.</p>
+      </div>
+
+      <div class="panel">
+        <div class="field-label">모델별 사용 비중·요청 수</div>
+        <div style="max-width:360px;margin:0 auto"><canvas id="modelChart" height="220"></canvas></div>
+        <div class="cost-table-wrap" style="margin-top:14px">
+          <table class="cost-table">
+            <thead>
+              <tr>
+                <th>provider/model</th>
+                <th>요청</th>
+                <th>입력</th>
+                <th>출력</th>
+                <th>캐시</th>
+                <th>비용</th>
+              </tr>
+            </thead>
+            <tbody id="modelRows"></tbody>
+          </table>
+        </div>
+        <p class="hint" id="modelEmpty" hidden>아직 모델별 기록이 없습니다.</p>
+      </div>
+
+      <div class="panel">
+        <div class="field-label">계정·기기별 사용량</div>
+        <div class="cost-table-wrap">
+          <table class="cost-table">
+            <thead>
+              <tr>
+                <th>범위</th>
+                <th>요청</th>
+                <th>토큰</th>
+                <th>비용</th>
+                <th>최근 사용</th>
+              </tr>
+            </thead>
+            <tbody id="subjectRows"></tbody>
+          </table>
+        </div>
+        <p class="hint">현재 로그인 계정 또는 익명 기기 범위에서만 집계합니다.</p>
+      </div>
+
+      <div class="panel">
+        <div class="result-head">
+          <div class="field-label">최근 요청 이력</div>
+          <a class="btn btn-ghost btn-small" href="/api/usage/export?days=30">CSV 내보내기</a>
+        </div>
+        <div class="cost-table-wrap">
+          <table class="cost-table">
+            <thead>
+              <tr>
+                <th>시간</th>
+                <th>provider/model</th>
+                <th>입력</th>
+                <th>출력</th>
+                <th>캐시</th>
+                <th>비용</th>
+              </tr>
+            </thead>
+            <tbody id="requestRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="foot">기획 하네스 루프 프로젝트</p>

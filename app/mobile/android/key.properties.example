@@ -1,0 +1,6 @@
+# Copy to key.properties (gitignored) and fill in real values.
+# Keep the keystore file OUTSIDE the repo, e.g. D:\keys\upload-keystore.jks
+storeFile=D\:\\keys\\upload-keystore.jks
+storePassword=CHANGE_ME
+keyAlias=upload
+keyPassword=CHANGE_ME

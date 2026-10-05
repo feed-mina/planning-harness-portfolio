@@ -1,0 +1,24 @@
+{
+  "schema": "planning-harness.ai-sdui.v1",
+  "result_id": "result.rejected-1",
+  "generated_at": "2026-07-19T12:00:00Z",
+  "source": { "provider": "codex" },
+  "card": {
+    "id": "card.rejected-1",
+    "type": "aiResultCard",
+    "props": {
+      "title": "거부 예시",
+      "summary": "위험 작업을 루트 액션으로 직접 실행하려는 문서입니다.",
+      "status": "completed"
+    },
+    "children": [],
+    "actions": [
+      {
+        "id": "action.direct-delete",
+        "type": "DELETE_RESOURCE",
+        "label": "즉시 삭제",
+        "ref_id": "resource.example-1"
+      }
+    ]
+  }
+}

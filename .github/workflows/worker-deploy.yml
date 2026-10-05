@@ -1,0 +1,168 @@
+name: Deploy Cloudflare Worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/worker-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment target
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+      staging_verified_commit:
+        description: Commit SHA verified against the live staging security smoke (required for production)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# 환경별로 큐를 분리한다 — production 배포가 진행 중인 staging 배포를 취소하면 안 된다.
+# production 은 마이그레이션 적용 후 취소되면 절반만 반영되므로 중간 취소를 막는다.
+concurrency:
+  group: cloudflare-worker-${{ inputs.target || 'staging' }}
+  cancel-in-progress: ${{ (inputs.target || 'staging') != 'production' }}
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Type check
+        working-directory: app
+        run: npm run typecheck
+
+      - name: Test
+        working-directory: app
+        run: npm test
+
+  deploy_staging:
+    if: github.event_name == 'push' || inputs.target == 'staging'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: staging
+      url: https://harness-meeting-app-staging.kibayerin.workers.dev
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Apply staging D1 migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: app
+          command: d1 migrations apply harness-meeting-db-staging --remote --env staging
+
+      - name: Deploy staging Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: app
+          command: deploy --env staging
+
+  verify_staging:
+    if: github.event_name == 'push' || inputs.target == 'staging'
+    needs: deploy_staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify deployed staging security boundaries
+        working-directory: app
+        env:
+          BASE_URL: https://harness-meeting-app-staging.kibayerin.workers.dev
+        run: node scripts/verify-nblog-security-smoke.mjs
+
+  deploy:
+    if: github.event_name == 'workflow_dispatch' && inputs.target == 'production'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://harness-meeting-app.kibayerin.workers.dev
+    steps:
+      - name: Require live staging evidence for this commit
+        env:
+          STAGING_VERIFIED_COMMIT: ${{ inputs.staging_verified_commit }}
+        run: test "$STAGING_VERIFIED_COMMIT" = "$GITHUB_SHA"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Apply production D1 migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: app
+          command: d1 migrations apply harness-meeting-db --remote --env=""
+
+      - name: Deploy production Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: app
+          # 다중 환경 설정에서는 top-level 환경을 빈 문자열로 명시해야 한다(wrangler 4 권장).
+          command: deploy --env=""
+
+      - name: Verify deployed production security boundaries
+        working-directory: app
+        env:
+          BASE_URL: https://harness-meeting-app.kibayerin.workers.dev
+        run: node scripts/verify-nblog-security-smoke.mjs

@@ -1,0 +1,123 @@
+:root {
+  color-scheme: light;
+  font-family: Pretendard, "Noto Sans KR", system-ui, sans-serif;
+  color: #172033;
+  background: #f4f7f6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 360px;
+  margin: 0;
+}
+
+main {
+  padding: 20px;
+}
+
+header {
+  margin-bottom: 18px;
+}
+
+.eyebrow {
+  color: #087f73;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+h1 {
+  margin: 6px 0;
+  font-size: 22px;
+}
+
+p,
+li,
+span {
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+header p {
+  margin: 0;
+  color: #5b6679;
+}
+
+label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #cbd6d3;
+  border-radius: 10px;
+  padding: 10px;
+  color: #172033;
+  background: #fff;
+  font: 12px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+textarea:focus {
+  border-color: #0c9b8c;
+  outline: 3px solid #c9f3eb;
+}
+
+button {
+  width: 100%;
+  margin-top: 10px;
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: #fff;
+  background: #087f73;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
+button.secondary {
+  color: #087f73;
+  border: 1px solid #9acfc7;
+  background: #fff;
+}
+
+.status {
+  display: grid;
+  gap: 3px;
+  margin-top: 14px;
+  border: 1px solid #dbe4e2;
+  border-radius: 10px;
+  padding: 11px 12px;
+  background: #fff;
+}
+
+.status.is-error {
+  border-color: #efb5b5;
+  color: #982f2f;
+  background: #fff7f7;
+}
+
+.status.is-success {
+  border-color: #9fd9c2;
+  color: #17643f;
+  background: #f4fff9;
+}
+
+.boundaries {
+  margin: 15px 0 0;
+  padding: 13px 13px 13px 30px;
+  border-radius: 10px;
+  color: #5b6679;
+  background: #eaf0ef;
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@feed-mina/mobile-shell",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Capacitor shell for the AI FeedYERIN web application",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build:web": "node scripts/sync-web-assets.mjs",
+    "build:web:production": "node scripts/sync-web-assets.mjs --production",
+    "cap:sync": "npm run build:web && cap sync && node scripts/normalize-native-project.mjs",
+    "cap:sync:android": "npm run build:web && cap sync android",
+    "cap:sync:release": "npm run build:web:production && cap sync android",
+    "cap:open:android": "cap open android",
+    "cap:open:ios": "cap open ios",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.4.0",
+    "@capacitor/core": "8.4.0",
+    "@capacitor/filesystem": "8.1.2",
+    "@capacitor/ios": "8.4.0",
+    "@capacitor/share": "8.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.4.0",
+    "typescript": "^5.6.3"
+  }
+}

@@ -1,0 +1,76 @@
+<div class="install-hero">
+  <img class="install-logo" src="/assets/loopdev-logo-1024.png" alt="" width="72" height="72" />
+  <div>
+    <h1 class="install-title">ASK/Todo Hub</h1>
+    <p class="lead">여러 로컬 Git 프로젝트의 ASK/Todo 기록, 실행 시각, 즉시 캡처를 한곳에서 관리하는 Windows 제어 센터입니다.</p>
+  </div>
+</div>
+
+<section class="panel">
+  <div class="field-label">어떤 도구인가요?</div>
+  <ul class="install-feature-list">
+    <li>여러 Git 프로젝트를 한 번에 찾아 등록하거나 GitHub URL에서 clone합니다.</li>
+    <li>프로젝트별로 하루 여러 실행 시각을 설정하고 Windows 예약 작업을 관리합니다.</li>
+    <li>현재 Git 이력과 작업 트리에 근거해 ASK/Todo 기록을 준비합니다.</li>
+    <li>개인 PC 모드와 영구 설정을 남기지 않는 임시 PC 모드를 구분합니다.</li>
+    <li>GitHub 비밀번호나 PAT를 저장하지 않으며 사용자 확인 없이 push하지 않습니다.</li>
+  </ul>
+</section>
+
+<section class="install-download-grid" aria-label="ASK/Todo Hub 다운로드">
+  <article class="panel install-download-card">
+    <div class="field-label">개인 PC용 Installer</div>
+    <p class="hint">시작 메뉴와 제거 프로그램에 등록되는 권장 설치 방식입니다. 제거 시 ASK/Todo 설정과 로그는 기본적으로 보존합니다.</p>
+    <a class="btn btn-primary" href="/downloads/ask-todo-hub/ASKTodoHub-Setup-latest.exe" download data-analytics-download="ask_todo_installer">📥 ASKTodoHub-Setup-latest.exe</a>
+  </article>
+  <article class="panel install-download-card">
+    <div class="field-label">임시 PC용 Portable</div>
+    <p class="hint">ZIP을 원하는 폴더에 풀어 실행합니다. 임시 PC 모드에서는 영구 예약 작업을 만들지 않고 Hub 소유 리소스만 정리합니다.</p>
+    <a class="btn btn-primary" href="/downloads/ask-todo-hub/ASKTodoHub-portable.zip" download data-analytics-download="ask_todo_portable">📦 ASKTodoHub-portable.zip</a>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="field-label">버전과 무결성 확인</div>
+  <p class="hint">공개 버전 정보에서 최신 버전과 파일 크기를 확인하고 SHA-256 파일의 값과 다운로드한 파일을 비교하세요.</p>
+  <div class="install-actions">
+    <a class="btn btn-ghost" href="/downloads/ask-todo-hub/SHA256SUMS.txt" download data-analytics-download="ask_todo_checksums">SHA256SUMS.txt</a>
+    <a class="btn btn-ghost" href="/downloads/ask-todo-hub/version-manifest.json" data-analytics-download="ask_todo_version">버전 정보</a>
+    <a class="btn btn-ghost" href="/assets/ask-todo-hub-guide.pdf" download data-analytics-download="ask_todo_guide_pdf">사용방법 PDF</a>
+  </div>
+</section>
+
+<section class="install-mode-grid">
+  <article class="panel">
+    <div class="field-label">개인 PC</div>
+    <ol class="install-steps">
+      <li>Installer를 실행하고 Git, PowerShell 상태를 확인합니다.</li>
+      <li>여러 로컬 폴더 또는 GitHub URL로 프로젝트를 추가합니다.</li>
+      <li>Claude/Codex와 09:00, 13:00, 17:30 같은 실행 시각을 지정합니다.</li>
+      <li>등록 결과와 예약 작업 상태를 확인합니다.</li>
+    </ol>
+  </article>
+  <article class="panel">
+    <div class="field-label">PC방·공용 PC</div>
+    <ol class="install-steps">
+      <li>Portable ZIP을 풀고 임시 PC 모드를 선택합니다.</li>
+      <li>즉시 캡처를 사용하며 영구 예약 작업은 만들지 않습니다.</li>
+      <li>종료 전에 임시 정리의 dry-run 목록을 확인합니다.</li>
+      <li>Git credential과 브라우저 로그인은 시스템 안내에 따라 별도로 로그아웃합니다.</li>
+    </ol>
+  </article>
+</section>
+
+<section class="panel">
+  <div class="field-label">문제 해결</div>
+  <ul class="install-feature-list">
+    <li><strong>SmartScreen:</strong> 이 페이지의 파일명과 SHA-256을 확인한 뒤 실행 여부를 결정하세요.</li>
+    <li><strong>Git 없음:</strong> Windows용 Git을 설치하고 새 터미널에서 다시 실행하세요.</li>
+    <li><strong>권한 없음:</strong> Hub는 관리자 권한을 기본 요구하지 않습니다. 예약 작업이 차단되면 즉시 캡처를 사용하세요.</li>
+    <li><strong>기존 폴더:</strong> clone 대상 폴더를 덮어쓰지 않습니다. 다른 위치를 선택하거나 기존 clone을 등록하세요.</li>
+    <li><strong>사내망:</strong> 이 운영 도메인의 다운로드 경로와 github.com clone 접근이 허용되는지 확인하세요.</li>
+  </ul>
+</section>
+
+<p class="install-note">다운로드 파일과 체크섬은 같은 배포에서 함께 게시됩니다. 단일 EXE만 복사하는 기존 방식 대신 installer 또는 portable ZIP 전체를 사용하세요.</p>
+<p class="foot">기획 하네스 루프 프로젝트</p>

@@ -1,0 +1,21 @@
+{
+  "name": "feed-mina-harness",
+  "owner": {
+    "name": "feed-mina",
+    "email": "user@example.com"
+  },
+  "description": "기획 하네스 배포 마켓플레이스 — 다른 개발 프로젝트에 기획 자동화 하네스를 설치",
+  "metadata": {
+    "description": "기획 하네스 배포 마켓플레이스 — 다른 개발 프로젝트에 기획 자동화 하네스를 설치"
+  },
+  "plugins": [
+    {
+      "name": "planning-harness",
+      "source": "./",
+      "description": "8개 기획/핸드오프 명령 + 검증된 AI SDUI 생성 스킬 + 회의록→GitHub Issue/Project 동기화 엔진 + 개발 repo @claude 봇 템플릿 (사람 승인 게이트)",
+      "version": "0.5.0",
+      "category": "productivity",
+      "tags": ["planning", "github-projects", "github-actions", "requirements", "korean"]
+    }
+  ]
+}

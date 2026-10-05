@@ -1,0 +1,5 @@
+# 의존성 / 로컬 상태 / 시크릿 — 커밋 금지
+node_modules/
+.wrangler/
+.dev.vars
+.dev.vars.*

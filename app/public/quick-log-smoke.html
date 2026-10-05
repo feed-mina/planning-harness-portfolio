@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quick Log Smoke</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <script>
+    // 로그인 없이 퀵 기록 모달 UI(#248)를 확인하기 위한 스텁.
+    // 실제 서버 대신 고정 fixture 를 돌려주고, 호출 내역을 window.__calls 에 남긴다.
+    (function () {
+      const buttons = [
+        { id: "b1", label: "뒤척임", emoji: "😴", input_mode: "one_tap", items: [], today_count: 4, goal_count_value: 1, streak: 1 },
+        { id: "b2", label: "수면시간", emoji: "⭐", input_mode: "free_text", items: [], today_count: 0, goal_count_value: 1, streak: 0 },
+        { id: "b3", label: "영양제복용", emoji: "💧", input_mode: "pick_item", items: [{ label: "오메가3" }, { label: "비타민D" }], today_count: 1, goal_count_value: 3, streak: 0 },
+      ];
+      const logs = [
+        { id: "l1", button_label: "영양제복용", item_label: "오메가3", logged_at: "2026-07-28T08:05:00.000Z", logged_date: "2026-07-28" },
+        { id: "l2", button_label: "뒤척임", logged_at: "2026-07-28T06:48:00.000Z", logged_date: "2026-07-28" },
+        { id: "l3", button_label: "뒤척임", logged_at: "2026-07-28T05:32:00.000Z", logged_date: "2026-07-28" },
+      ];
+      const deletedLogs = [];
+      const week = (hits) => hits.map((count, i) => ({
+        date: `2026-07-${String(22 + i).padStart(2, "0")}`, count, hit: count > 0,
+      }));
+      const weekByButton = { b1: week([1, 0, 2, 0, 1, 0, 4]), b2: week([0, 0, 0, 0, 0, 0, 0]), b3: week([0, 1, 0, 0, 1, 0, 1]) };
+
+      window.__calls = [];
+      window.__failNext = false;
+
+      function overview() {
+        const achieved = buttons.filter((b) => b.today_count >= b.goal_count_value).length;
+        return {
+          date: "2026-07-28",
+          timezone: "Asia/Seoul",
+          summary: {
+            button_count: buttons.length,
+            target: buttons.length,
+            goal_total: buttons.reduce((a, b) => a + b.goal_count_value, 0),
+            achieved,
+            log_count: logs.length,
+          },
+          buttons: buttons.map((b) => ({ ...b, week: weekByButton[b.id] })),
+          logs: logs.slice(),
+        };
+      }
+
+      const reply = (body, status = 200) => Promise.resolve(new Response(JSON.stringify(body), {
+        status, headers: { "content-type": "application/json" },
+      }));
+
+      window.apiFetch = function apiFetch(path, options = {}) {
+        const method = (options.method || "GET").toUpperCase();
+        window.__calls.push(`${method} ${path}`);
+        if (path.startsWith("/api/quick-log/overview")) return reply(overview());
+        if (path === "/api/quick-log/logs" && method === "POST") {
+          if (window.__failNext) {
+            window.__failNext = false;
+            return reply({ error: "임시 오류입니다." }, 500);
+          }
+          const payload = JSON.parse(options.body || "{}");
+          const target = buttons.find((b) => b.id === payload.button_id);
+          if (target) target.today_count += 1;
+          logs.unshift({
+            id: payload.id, button_label: payload.button_label, item_label: payload.item_label || null,
+            logged_at: new Date().toISOString(), logged_date: "2026-07-28",
+          });
+          return reply({ ok: true, idempotent: false });
+        }
+        // soft delete: 지운 기록은 보관해 두었다가 restore 로 원래 logged_at 그대로 되살린다.
+        if (path.startsWith("/api/quick-log/logs/") && path.endsWith("/restore") && method === "POST") {
+          const id = decodeURIComponent(path.split("/").slice(-2)[0]);
+          const index = deletedLogs.findIndex((row) => row.id === id);
+          if (index >= 0) {
+            const [restored] = deletedLogs.splice(index, 1);
+            logs.push(restored);
+            logs.sort((a, b) => (a.logged_at < b.logged_at ? 1 : -1));
+            const target = buttons.find((b) => b.label === restored.button_label);
+            if (target) target.today_count += 1;
+          }
+          return reply({ ok: true, id });
+        }
+        if (path.startsWith("/api/quick-log/logs/") && method === "DELETE") {
+          const id = decodeURIComponent(path.split("/").pop());
+          const index = logs.findIndex((row) => row.id === id);
+          if (index >= 0) {
+            const [removed] = logs.splice(index, 1);
+            deletedLogs.push(removed);
+            const target = buttons.find((b) => b.label === removed.button_label);
+            if (target) target.today_count = Math.max(0, target.today_count - 1);
+          }
+          return reply({ ok: true });
+        }
+        if (path.startsWith("/api/quick-log/buttons/") && method === "DELETE") {
+          const id = decodeURIComponent(path.split("/").pop());
+          const index = buttons.findIndex((b) => b.id === id);
+          if (index >= 0) buttons.splice(index, 1);
+          return reply({ ok: true });
+        }
+        if (path === "/api/me") return reply({ login: "feed-mina" });
+        return reply({});
+      };
+    }());
+  </script>
+  <script src="/assets/common.js" defer></script>
+  <script src="/assets/quick-log.js" defer></script>
+</head>
+<body data-page="quick-log-smoke">
+  <main class="wrap">
+    <h1>Quick Log Smoke</h1>
+    <p class="hint">헤더의 시계 칩을 눌러 퀵 기록 모달을 확인하세요. API 는 고정 fixture 로 대체됩니다.</p>
+    <p class="hint"><code>window.__failNext = true</code> 로 다음 기록 요청을 실패시켜 낙관적 업데이트 롤백을 확인할 수 있습니다.</p>
+  </main>
+</body>
+</html>

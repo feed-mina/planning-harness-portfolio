@@ -1,0 +1,23 @@
+{
+  "schema": "feedmina.sdui.template.v1",
+  "id": "planning-harness-meeting",
+  "name": "Planning Harness Meeting",
+  "version": "1.0.0",
+  "recommendedTier": "free",
+  "runtimeAdapters": ["cloudflare-worker-static"],
+  "pages": [{
+    "id": "meeting",
+    "sourceKind": "page_key",
+    "title": "Meeting plan",
+    "route": "/meeting/",
+    "metadataRef": "api-contract.md",
+    "nodes": [{
+      "id": "meeting-root", "name": "Meeting", "type": "Stack", "props": {}, "style": {}, "states": {},
+      "children": [
+        { "id": "meeting-title", "name": "Title", "type": "Heading", "props": { "text": "Meeting plan", "level": 1 }, "style": {}, "states": {}, "children": [] },
+        { "id": "meeting-summary", "name": "Summary", "type": "Card", "props": { "title": "Agenda", "description": "Decisions, owners, and next actions" }, "style": {}, "states": {}, "children": [] },
+        { "id": "meeting-action", "name": "Add action", "type": "Button", "props": { "label": "Add action" }, "style": {}, "states": {}, "children": [] }
+      ]
+    }]
+  }]
+}

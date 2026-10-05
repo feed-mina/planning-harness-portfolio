@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Planning Harness NBlog 도우미",
+  "version": "0.1.0",
+  "description": "승인된 NBlog 제목·본문·태그를 빈 네이버 SmartEditor 초안에 입력합니다. 로그인과 최종 발행은 사용자가 직접 합니다.",
+  "minimum_chrome_version": "102",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://harness-meeting-app.kibayerin.workers.dev/*",
+    "https://harness-meeting-app-staging.kibayerin.workers.dev/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "NBlog 초안 입력",
+    "default_popup": "popup/popup.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

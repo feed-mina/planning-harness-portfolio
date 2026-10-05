@@ -1,0 +1,124 @@
+{
+  "schema": "feedmina.sdui.template.v1",
+  "id": "kride-ai-chat",
+  "name": "K-RIDE AI Chat Template",
+  "version": "0.1.0",
+  "recommendedTier": "ai-ops",
+  "runtimeAdapters": ["react-next"],
+  "pages": [
+    {
+      "id": "kride-chat",
+      "sourceKind": "screen_id",
+      "title": "K-RIDE AI Chat",
+      "route": "/view/KRIDE_CHAT",
+      "metadataRef": "metadata/kride-ai-chat.screen.json",
+      "pluginRefs": ["kride-travel", "ai-gateway"]
+    }
+  ],
+  "metadata": {
+    "format": "json",
+    "sources": ["metadata/kride-ai-chat.screen.json"]
+  },
+  "components": [
+    "AI_CHAT",
+    "KRIDE_CHAT",
+    "MAP_VIEW",
+    "ITINERARY_PANEL",
+    "TEXT",
+    "BUTTON",
+    "GROUP",
+    "WIDGET"
+  ],
+  "ai": {
+    "provider": "openai",
+    "adapter": {
+      "kind": "server-responses-api",
+      "resultContract": "manifest-patch",
+      "streamEvents": [
+        "ai.started",
+        "ai.text.delta",
+        "ai.patch.delta",
+        "ai.completed",
+        "ai.failed"
+      ]
+    },
+    "routing": {
+      "policy": "server",
+      "taskTypes": [
+        "element-style-suggest",
+        "screen-generate",
+        "i18n-draft",
+        "i18n-refine",
+        "manifest-error-explain",
+        "publish-quality-gate"
+      ]
+    },
+    "result": {
+      "type": "manifest-patch",
+      "allowedRoots": [
+        "/theme",
+        "/elements",
+        "/pages",
+        "/messages",
+        "/metadata",
+        "/components"
+      ]
+    }
+  },
+  "plugins": [
+    {
+      "id": "kride-travel",
+      "kind": "react-screen-plugin",
+      "runtimeAdapters": ["react-next"],
+      "entry": "plugins/kride-travel.manifest.json",
+      "provides": {
+        "components": ["KRIDE_CHAT", "MAP_VIEW", "ITINERARY_PANEL"],
+        "screenControllers": ["KRIDE_FOCUS"],
+        "actions": ["KRIDE_CHAT_SEND", "KRIDE_APPLY_ITINERARY"],
+        "hydrators": ["kride_form"],
+        "widgets": ["kride_itinerary"]
+      }
+    },
+    {
+      "id": "ai-gateway",
+      "kind": "hosted-service",
+      "runtimeAdapters": ["react-next"],
+      "entry": "plugins/ai-gateway.manifest.json",
+      "provides": {
+        "actions": ["AI_GATEWAY_CHECK"],
+        "endpoints": ["POST /api/ai/gateway/check"]
+      }
+    }
+  ],
+  "api": {
+    "contract": "api-contract.md",
+    "endpoints": [
+      {
+        "method": "POST",
+        "path": "/api/v1/kride/chat",
+        "auth": "logged_in + ai-ops"
+      },
+      {
+        "method": "POST",
+        "path": "/api/v1/kride/chat/stream",
+        "auth": "logged_in + ai-ops"
+      },
+      {
+        "method": "POST",
+        "path": "/api/ai/gateway/check",
+        "auth": "api-key"
+      }
+    ]
+  },
+  "env": {
+    "secrets": ["KRIDE_AI_GATEWAY_KEY", "OPENAI_API_KEY"],
+    "vars": ["AI_GATE_ENABLED", "AI_DAILY_QUOTA"]
+  },
+  "gating": {
+    "free": ["static-chat-demo"],
+    "ai-ops": ["ai-chat", "itinerary-generation", "usage-metering"]
+  },
+  "risks": [
+    "The live KMovement endpoint remains login-based; hosted AI gateway enforcement is modeled as an adapter gate, not forced onto the existing endpoint."
+  ]
+}

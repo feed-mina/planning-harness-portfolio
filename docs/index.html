@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>녹음·자막 파일로 회의록 만들기 — 기획 하네스</title>
+  <meta name="description" content="녹음/자막 파일에서 요약·결정사항·할 일을 담은 Markdown 회의록을 만들어 기획 하네스 파이프라인으로 연결" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="card">
+    <h1>녹음·자막 파일로 회의록 만들기</h1>
+    <p class="lead">
+      녹음 파일이나 Teams 자막 텍스트를 선택하면 요약·결정 사항·할 일을 담은
+      Markdown 회의록을 자동으로 내려받습니다. 결과는 기획 하네스의
+      <code>meetings/summary/</code> 에 넣어 <code>/git-project-sync</code> 로 이어집니다.
+    </p>
+
+    <!-- 1) 녹음 -->
+    <section class="panel">
+      <div class="rec-row">
+        <button id="btnRecStart" class="btn btn-primary">녹음 시작</button>
+        <button id="btnRecStop" class="btn btn-coral" disabled>녹음 종료</button>
+        <span id="timer" class="timer">00:00</span>
+        <span id="recDot" class="rec-dot" hidden></span>
+      </div>
+      <button id="btnClova" class="btn btn-outline-green btn-block">클로바/외부 STT로 전사하기</button>
+      <p class="hint" id="speechSupport"></p>
+    </section>
+
+    <!-- 2) 파일 선택 -->
+    <section class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="녹음 또는 자막 파일 선택">
+      <div class="mic">🎙️</div>
+      <div class="dz-title">녹음 또는 자막 파일 선택</div>
+      <div class="dz-sub">여기를 누르면 내 컴퓨터의 폴더가 열립니다. (.vtt · .srt · .txt · 오디오)</div>
+      <input type="file" id="fileInput" accept=".vtt,.srt,.txt,audio/*" hidden />
+    </section>
+
+    <!-- 3) 전사 결과 -->
+    <section class="panel">
+      <label class="field-label" for="transcript">전사 결과 (직접 수정 가능)</label>
+      <textarea id="transcript" rows="8" placeholder="자막 파일을 선택하거나, 녹음을 시작하면 여기에 전사 텍스트가 채워집니다."></textarea>
+      <div class="meta-row">
+        <label>회의 날짜 <input type="date" id="meetingDate" /></label>
+        <label>참석자 <input type="text" id="attendees" placeholder="@홍길동, @김철수" /></label>
+      </div>
+    </section>
+
+    <!-- 4) 회의록 생성 -->
+    <section class="panel">
+      <div class="gen-row">
+        <button id="btnDraft" class="btn btn-primary">규칙기반 초안 만들기</button>
+        <button id="btnAI" class="btn btn-dark">AI 요약 (Claude)</button>
+      </div>
+      <details class="settings">
+        <summary>⚙️ API 키 설정 (선택 · 브라우저에만 저장, 커밋 안 됨)</summary>
+        <div class="settings-body">
+          <p class="hint danger">키는 이 브라우저의 localStorage 에만 저장됩니다. 공용 PC에서는 사용 후 지우세요. 절대 코드/커밋에 넣지 마세요.</p>
+          <label>Anthropic API 키 (AI 요약용)
+            <input type="password" id="anthropicKey" placeholder="sk-ant-..." autocomplete="off" />
+          </label>
+          <label>모델
+            <select id="model">
+              <option value="claude-sonnet-4-6" selected>claude-sonnet-4-6 (빠름·기본)</option>
+              <option value="claude-opus-4-8">claude-opus-4-8 (최고품질)</option>
+              <option value="claude-haiku-4-5-20251001">claude-haiku-4-5 (경량)</option>
+            </select>
+          </label>
+          <hr />
+          <label>Clova/외부 STT Invoke URL
+            <input type="text" id="clovaUrl" placeholder="https://clovaspeech-gw.../recognizer/upload" autocomplete="off" />
+          </label>
+          <label>STT Secret 키
+            <input type="password" id="clovaKey" placeholder="X-CLOVASPEECH-API-KEY" autocomplete="off" />
+          </label>
+          <button id="btnSaveKeys" class="btn btn-small">키 저장</button>
+          <button id="btnClearKeys" class="btn btn-small btn-ghost">키 지우기</button>
+        </div>
+      </details>
+      <p class="hint" id="genStatus"></p>
+    </section>
+
+    <!-- 5) 결과 -->
+    <section class="panel" id="resultPanel" hidden>
+      <div class="result-head">
+        <span class="field-label">회의록 <span class="editable-tag">(직접 수정 가능)</span></span>
+        <div class="view-toggle" role="tablist">
+          <button id="tabPreview" class="tab active" type="button" role="tab">👁 미리보기</button>
+          <button id="tabEdit" class="tab" type="button" role="tab">✏️ 편집</button>
+        </div>
+      </div>
+      <!-- 읽기용 렌더링 (요약·결정·할 일이 보기 좋게) -->
+      <div id="mdPreview" class="md-preview" aria-live="polite"></div>
+      <!-- 직접 수정 (전사 결과와 동일한 편집 방식) -->
+      <textarea id="markdown" rows="16" spellcheck="false" hidden></textarea>
+      <div class="result-actions">
+        <button id="btnDownload" class="btn btn-primary">⬇ .md 내려받기</button>
+        <button id="btnCopy" class="btn btn-ghost">📋 복사</button>
+        <span class="fname" id="fname"></span>
+      </div>
+      <p class="hint next">
+        다음 단계: 내려받은 파일을 <code>planning-harness/meetings/summary/</code> 에 넣고
+        <code>/git-project-sync &lt;날짜&gt;</code> 실행 → dry-run 검토 후 승인하면 GitHub Issues·Project 반영.
+      </p>
+    </section>
+
+    <footer class="foot">
+      정적 페이지 · 서버로 아무것도 전송하지 않음 (Claude/Clova 호출은 사용자가 키를 입력한 경우에만, 브라우저에서 직접) ·
+      <a href="https://github.com/feed-mina/planning-harness">planning-harness</a>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

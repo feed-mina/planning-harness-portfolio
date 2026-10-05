@@ -1,0 +1,31 @@
+{
+  "name": "harness-meeting-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "기획 하네스 회의록 메이커 — Cloudflare Worker 멀티페이지 앱 (Epic #3)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "npm run build:seo && wrangler deploy",
+    "build:seo": "node scripts/generate-sitemap.mjs",
+    "check:seo": "node scripts/generate-sitemap.mjs --check",
+    "build:checklist": "node scripts/build-checklist.mjs",
+    "check:checklist": "node scripts/build-checklist.mjs --check",
+    "test": "node --test tests/analysis-result-policy.test.cjs tests/analysis-upload-policy.test.cjs tests/analytics-seo-contract.test.cjs tests/analytics-client.runtime.test.cjs tests/seo-validator.test.mjs tests/mobile-api-contract.test.cjs tests/connected-app-auth-contract.test.cjs tests/nblog-automation-contract.test.cjs tests/nblog-backend-contract.test.cjs tests/nblog-browser-helper.test.cjs tests/nblog-publish-screen.test.cjs tests/agent-subscriptions-contract.test.cjs tests/ai-sdui-contract.test.cjs tests/ai-sdui-client.runtime.test.cjs tests/ai-sdui-skill-contract.test.cjs tests/usage-bridge.test.mjs tests/auth-identity-unlink-frontend.test.cjs tests/quick-log-ui-contract.test.cjs tests/garden-source-picker-contract.test.cjs tests/mypage-schedule-contract.test.cjs tests/schedule-sessions-contract.test.cjs tests/domain-entrypoint-boundary.contract.test.cjs tests/template-catalog-address-block.test.cjs && npm run check:checklist && npm run test:runtime",
+    "test:nblog-helper": "node --test tests/nblog-browser-helper.test.cjs",
+    "test:runtime": "vitest run --config vitest.config.mts",
+    "typecheck": "tsc --noEmit",
+    "qa:garden-runner": "node ../scripts/qa/garden-runner-smoke.mjs",
+    "db:migrate:local": "wrangler d1 migrations apply harness-meeting-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply harness-meeting-db --remote"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.18.5",
+    "@cloudflare/workers-types": "^5.20260715.1",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.10",
+    "wrangler": "^4.111.0"
+  },
+  "dependencies": {
+    "write-excel-file": "^4.1.1"
+  }
+}

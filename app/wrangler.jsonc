@@ -1,0 +1,301 @@
+{
+	// 기획 하네스 — 회의록 메이커 Cloudflare 앱 (Epic #3)
+	// 배포 전: `wrangler d1 create`, `wrangler r2 bucket create`, secret 설정 → app/README.md 참고
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "harness-meeting-app",
+	"main": "src/index.ts",
+	"workers_dev": true,
+	"compatibility_date": "2026-07-27",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"observability": {
+		"enabled": true,
+		"head_sampling_rate": 1
+	},
+	"ratelimits": [
+		{
+			"name": "NBLOG_SYNC_RATE_LIMITER",
+			"namespace_id": "180001",
+			"simple": { "limit": 300, "period": 60 }
+		},
+		{
+			"name": "NBLOG_UI_RATE_LIMITER",
+			"namespace_id": "180002",
+			"simple": { "limit": 120, "period": 60 }
+		},
+		{
+			"name": "NBLOG_TOKEN_RATE_LIMITER",
+			"namespace_id": "180003",
+			"simple": { "limit": 120, "period": 60 }
+		}
+	],
+	// 멀티페이지 정적 자산 — /api/* 및 로그인 보호 페이지는 Worker 가 먼저 처리
+	"assets": {
+		"directory": "./public",
+		"binding": "ASSETS",
+		"html_handling": "auto-trailing-slash",
+		"not_found_handling": "404-page",
+		"run_worker_first": [
+			"/api/*",
+			"/nblog-automation",
+			"/nblog-automation/*",
+			"/analysis",
+			"/analysis/*",
+			"/analysis-edit2",
+			"/analysis-edit2/*",
+			"/garden",
+			"/garden/*",
+			"/studio",
+			"/studio/*",
+			"/assets/sdui-fragments/analysis.html",
+			"/assets/sdui-fragments/analysis-edit2.html"
+		]
+	},
+	// D1 — 사용자·사용량·회의록 메타·설정 (database_id 는 `wrangler d1 create` 후 채움)
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "harness-meeting-db",
+			"database_id": "<your-d1-database-id>",
+			"migrations_dir": "migrations"
+		}
+	],
+	// R2 — 회의록 .md / 오디오 원본
+	"r2_buckets": [
+		{
+			"binding": "R2",
+			"bucket_name": "harness-meetings"
+		}
+	],
+	// Media Transformations — NBlog 영상에서 대표 프레임 추출 (#170). named env 에 자동 상속되지 않아 staging 에도 별도 선언
+	"media": {
+		"binding": "MEDIA"
+	},
+	// Images — 4MB 를 넘는 원본 사진을 vision 입력용으로 축소 (#171)
+	"images": {
+		"binding": "IMAGES"
+	},
+	// Vectorize — 분석파일 RAG 청크 검색. 생성 예: wrangler vectorize create harness-analysis-rag --dimensions=1536 --metric=cosine
+	"vectorize": [
+		{
+			"binding": "VECTORIZE",
+			"index_name": "harness-analysis-rag",
+			"remote": true
+		}
+	],
+	"workflows": [
+		{
+			"binding": "NBLOG_WORKFLOW",
+			"name": "harness-nblog-operations",
+			"class_name": "NBlogWorkflow"
+		}
+	],
+	// 분석 파일 RAG/그래프 인덱싱 — 요청 경로와 분리하고 재시도/DLQ를 적용한다.
+	"queues": {
+		"producers": [
+			{
+				"binding": "ANALYSIS_INDEX_QUEUE",
+				"queue": "harness-analysis-index"
+			}
+		],
+		"consumers": [
+			{
+				"queue": "harness-analysis-index",
+				"max_batch_size": 5,
+				"max_batch_timeout": 5,
+				"max_retries": 5,
+				"retry_delay": 30,
+				"dead_letter_queue": "harness-analysis-index-dlq"
+			},
+			{
+				"queue": "harness-analysis-index-dlq",
+				"max_batch_size": 10,
+				"max_batch_timeout": 5,
+				"max_retries": 3,
+				"retry_delay": 60
+			}
+		]
+	},
+	// 비민감 설정값 (키는 secret 으로 별도 — wrangler secret put)
+	// Gemini 경로: GOOGLE_SERVICE_ACCOUNT_JSON(secret)이 있으면 Vertex(위치 차단 회피),
+	//              없으면 GEMINI_API_KEY(AI Studio) 로 폴백. project_id 는 서비스계정 JSON 에서 읽고,
+	//              리전은 GOOGLE_CLOUD_LOCATION(기본 us-central1) 사용 — 다른 리전이면 아래 vars 에 추가.
+	"vars": {
+		"DAILY_LIMIT_KRW": "500",
+		"ANALYSIS_RETENTION_DAYS": "90",
+		"ANALYSIS_INDEX_QUEUE_NAME": "harness-analysis-index",
+		"ANALYSIS_INDEX_DLQ_NAME": "harness-analysis-index-dlq",
+		"NBLOG_MEDIA_MAX_BYTES": "104857600",
+		"NBLOG_GENERATION_MODEL": "gpt-5-mini",
+		"NBLOG_HANDOFF_ENABLED": "true",
+		"ANALYTICS_ENABLED": "false",
+		"ANALYTICS_ENVIRONMENT": "production",
+		"MOBILE_AUTH_ENABLED": "false",
+		"MOBILE_AUTH_REDIRECT_URIS": "[]",
+		"CONNECTED_APP_AUTH_ENABLED": "true",
+		"AUTO_MEDIA_NAV_ENABLED": "true",
+		"CONNECTED_APP_CLIENT_ID": "auto-media-web",
+		"CONNECTED_APP_AUDIENCE": "auto-media",
+		"CONNECTED_APP_SCOPE": "auto_media:sign_in",
+		"CONNECTED_APP_REDIRECT_URI": "https://auto-media.kibayerin.workers.dev/auth/harness/callback",
+		"GITHUB_OAUTH_CLIENT_ID": "Ov23liqARk9JGrEYBJOz",
+		"APP_BASE_URL": "https://harness-meeting-app.kibayerin.workers.dev",
+		"RAG_EMBEDDING_PROVIDER": "gemini",
+		"RAG_EMBEDDING_MODEL": "gemini-embedding-001",
+		"RAG_EMBEDDING_DIMENSIONS": "1536",
+		// DagsHub(MLflow) 실험 추적 — URI/REPO 는 비밀 아님. 토큰만 secret 으로 넣는다.
+		// ⚠️ 실제 DagsHub owner/repo 로 맞춰서 수정하세요(GitHub repo 와 다를 수 있음).
+		// experiment 는 환경별로 분리한다 — staging run 이 production 기록에 섞이지 않게 한다.
+		"DAGSHUB_MLFLOW_TRACKING_URI": "https://dagshub.com/feed-mina/planning-harness.mlflow",
+		"DAGSHUB_REPO": "feed-mina/planning-harness",
+		"DAGSHUB_EVAL_EXPERIMENT": "ai-eval",
+		"DAGSHUB_USAGE_EXPERIMENT": "production-usage",
+		"SENDGRID_MAIL_SEND_ENDPOINT": "https://api.sendgrid.com/v3/mail/send",
+		"ALERT_EMAIL_FROM_NAME": "Planning Harness"
+		// Public analytics identifiers (not secrets). Enable only after consent/QA setup:
+		// "GA4_MEASUREMENT_ID": "G-XXXXXXXXXX",
+		// "GTM_CONTAINER_ID": "GTM-XXXXXXX",
+		// "CLOUDFLARE_WEB_ANALYTICS_TOKEN": "...",
+		// "CLARITY_PROJECT_ID": "..."
+		// "GOOGLE_CLOUD_LOCATION": "us-central1",   // 기본값과 다를 때만
+		// "GOOGLE_CLOUD_PROJECT_ID": "quartz-kiba"  // 서비스계정 project_id 와 다를 때만
+	},
+	"triggers": {
+		"crons": [
+			"*/5 * * * *"
+		]
+	},
+	// staging은 production과 바인딩·비밀정보를 공유하지 않는다(리소스는 모두 -staging 접미사).
+	// 설정값 자체는 production과 동일하게 유지해 배포 전에 같은 경로를 검증한다 —
+	// 환경을 구분해야 하는 값(URL, OAuth 앱, ANALYTICS_ENVIRONMENT, 발신자명)만 다르다.
+	"env": {
+		"staging": {
+			"workers_dev": true,
+			"ratelimits": [
+				{
+					"name": "NBLOG_SYNC_RATE_LIMITER",
+					"namespace_id": "180101",
+					"simple": { "limit": 300, "period": 60 }
+				},
+				{
+					"name": "NBLOG_UI_RATE_LIMITER",
+					"namespace_id": "180102",
+					"simple": { "limit": 120, "period": 60 }
+				},
+				{
+					"name": "NBLOG_TOKEN_RATE_LIMITER",
+					"namespace_id": "180103",
+					"simple": { "limit": 120, "period": 60 }
+				}
+			],
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "harness-meeting-db-staging",
+					"database_id": "5c5a7dc4-f603-4a87-843e-de809e02ec72",
+					"migrations_dir": "migrations"
+				}
+			],
+			"r2_buckets": [
+				{
+					"binding": "R2",
+					"bucket_name": "harness-meetings-staging"
+				}
+			],
+			"media": {
+				"binding": "MEDIA"
+			},
+			"images": {
+				"binding": "IMAGES"
+			},
+			"vectorize": [
+				{
+					"binding": "VECTORIZE",
+					"index_name": "harness-analysis-rag-staging",
+					"remote": true
+				}
+			],
+			"workflows": [
+				{
+					"binding": "NBLOG_WORKFLOW",
+					"name": "harness-nblog-operations-staging",
+					"class_name": "NBlogWorkflow"
+				}
+			],
+			"queues": {
+				"producers": [
+					{
+						"binding": "ANALYSIS_INDEX_QUEUE",
+						"queue": "harness-analysis-index-staging"
+					}
+				],
+				"consumers": [
+					{
+						"queue": "harness-analysis-index-staging",
+						"max_batch_size": 5,
+						"max_batch_timeout": 5,
+						"max_retries": 5,
+						"retry_delay": 30,
+						"dead_letter_queue": "harness-analysis-index-staging-dlq"
+					},
+					{
+						"queue": "harness-analysis-index-staging-dlq",
+						"max_batch_size": 10,
+						"max_batch_timeout": 5,
+						"max_retries": 3,
+						"retry_delay": 60
+					}
+				]
+			},
+			"vars": {
+				"DAILY_LIMIT_KRW": "500",
+				"ANALYSIS_RETENTION_DAYS": "90",
+				"ANALYSIS_INDEX_QUEUE_NAME": "harness-analysis-index-staging",
+				"ANALYSIS_INDEX_DLQ_NAME": "harness-analysis-index-staging-dlq",
+				"NBLOG_MEDIA_MAX_BYTES": "104857600",
+				"NBLOG_GENERATION_MODEL": "gpt-5-mini",
+				"NBLOG_HANDOFF_ENABLED": "true",
+				"ANALYTICS_ENABLED": "false",
+				"ANALYTICS_ENVIRONMENT": "staging",
+				"MOBILE_AUTH_ENABLED": "false",
+				"MOBILE_AUTH_REDIRECT_URIS": "[]",
+				"CONNECTED_APP_AUTH_ENABLED": "false",
+				"AUTO_MEDIA_NAV_ENABLED": "false",
+				"CONNECTED_APP_CLIENT_ID": "",
+				"CONNECTED_APP_AUDIENCE": "",
+				"CONNECTED_APP_SCOPE": "",
+				"CONNECTED_APP_REDIRECT_URI": "",
+				"GITHUB_OAUTH_CLIENT_ID": "Ov23liH9w9qZGQq76g4j",
+				"APP_BASE_URL": "https://harness-meeting-app-staging.kibayerin.workers.dev",
+				"RAG_EMBEDDING_PROVIDER": "gemini",
+				"RAG_EMBEDDING_MODEL": "gemini-embedding-001",
+				"RAG_EMBEDDING_DIMENSIONS": "1536",
+				// 같은 DagsHub repo 를 쓰되 experiment 를 분리한다. repo 단위로 완전히 떼려면
+				// URI/REPO 를 staging 용으로 바꾸고 `wrangler secret put DAGSHUB_TOKEN --env staging` 을 다시 넣는다.
+				"DAGSHUB_MLFLOW_TRACKING_URI": "https://dagshub.com/feed-mina/planning-harness.mlflow",
+				"DAGSHUB_REPO": "feed-mina/planning-harness",
+				"DAGSHUB_EVAL_EXPERIMENT": "staging-ai-eval",
+				"DAGSHUB_USAGE_EXPERIMENT": "staging-usage",
+				"SENDGRID_MAIL_SEND_ENDPOINT": "https://api.sendgrid.com/v3/mail/send",
+				"ALERT_EMAIL_FROM_NAME": "Planning Harness (staging)"
+			},
+			// production과 동일한 주기로 scheduled() 경로까지 staging에서 검증한다.
+			"triggers": {
+				"crons": [
+					"*/5 * * * *"
+				]
+			}
+		}
+	}
+	// Secrets (wrangler secret put): ANTHROPIC_API_KEY, OPENAI_API_KEY,
+	//                                GEMINI_API_KEY (AI Studio · 선택), GOOGLE_SERVICE_ACCOUNT_JSON (Vertex),
+	//                                GITHUB_OAUTH_CLIENT_SECRET, JWT_SECRET, DAGSHUB_TOKEN,
+	//                                GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET,
+	//                                KAKAO_REST_API_KEY, KAKAO_CLIENT_SECRET,
+	//                                NAVER_OAUTH_CLIENT_ID, NAVER_OAUTH_CLIENT_SECRET,
+	//                                CONNECTED_APP_BACKCHANNEL_SECRET,
+	//                                CLOVA_SPEECH_INVOKE_URL, CLOVA_SPEECH_SECRET_KEY,
+	//                                SENDGRID_API_KEY, ALERT_EMAIL_FROM,
+	//                                CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_PAGES_API_TOKEN
+}

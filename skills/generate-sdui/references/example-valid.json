@@ -1,0 +1,36 @@
+{
+  "schema": "planning-harness.ai-sdui.v1",
+  "result_id": "result.example-1",
+  "generated_at": "2026-07-19T12:00:00Z",
+  "source": {
+    "provider": "claude",
+    "model": "verified-at-runtime"
+  },
+  "card": {
+    "id": "card.example-1",
+    "type": "aiResultCard",
+    "props": {
+      "title": "요구사항 분석",
+      "summary": "근거가 확인된 결과만 표시합니다.",
+      "status": "completed"
+    },
+    "children": [
+      {
+        "id": "status.example-1",
+        "type": "statusBadge",
+        "props": {
+          "status": "completed",
+          "label": "완료"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "action.open-evidence",
+        "type": "OPEN_EVIDENCE",
+        "label": "근거 보기",
+        "ref_id": "evidence.example-1"
+      }
+    ]
+  }
+}

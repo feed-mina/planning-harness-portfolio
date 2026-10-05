@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>시간 설정 · 기획 하네스 루프 프로젝트</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/png" href="/assets/loopdev-logo-1024.png" />
+  <link rel="apple-touch-icon" href="/assets/loopdev-logo-1024.png" />
+  <link rel="stylesheet" href="/assets/styles.css?v=20260715-4" />
+</head>
+<body data-page="time-settings">
+  <div class="wrap">
+    <div class="quick-log-page-tabs" role="tablist" aria-label="시간 설정 탭">
+      <button type="button" class="quick-log-page-tab active" id="timeSettingsTabSettings" role="tab" aria-selected="true" data-tab="settings">설정</button>
+      <button type="button" class="quick-log-page-tab" id="timeSettingsTabHistory" role="tab" aria-selected="false" data-tab="history">퀵 기록 이력</button>
+    </div>
+    <main id="root" class="card" aria-live="polite">화면을 불러오는 중입니다.</main>
+    <section id="quickLogHistoryPanel" class="card quick-log-history-panel" hidden>
+      <h1>퀵 기록 이력</h1>
+      <p class="lead">버튼별 기록을 날짜 범위로 조회합니다.</p>
+      <div class="quick-log-history-controls">
+        <label>시작일 <input type="date" id="qlHistoryFrom" /></label>
+        <label>종료일 <input type="date" id="qlHistoryTo" /></label>
+        <button type="button" class="btn btn-ghost btn-small" id="qlHistoryThisWeek">최근 7일</button>
+        <button type="button" class="btn btn-primary btn-small" id="qlHistoryLoad">조회</button>
+      </div>
+      <div id="quickLogHistoryDots"></div>
+      <ul id="quickLogHistoryList" class="quick-log-today-list"><li class="hint">불러오는 중...</li></ul>
+    </section>
+  </div>
+  <script src="/assets/runtime-config.js"></script>
+  <script src="/assets/api-client.js"></script>
+  <script src="/assets/public-pages.js"></script>
+  <script src="/assets/analytics.js"></script>
+  <script src="/assets/common.js?v=20260710-2" charset="UTF-8"></script>
+  <script src="/assets/quick-log.js" charset="UTF-8"></script>
+  <script src="/assets/sdui-time-settings.js?v=20260715-1" charset="UTF-8"></script>
+  <script src="/assets/sdui-engine.js?v=20260710-2" charset="UTF-8"></script>
+</body>
+</html>

@@ -1,0 +1,308 @@
+{
+  "schema": "feedmina.sdui.template.v1",
+  "id": "garden-knowledge-base",
+  "name": "팀 자료·지식 관리 화면",
+  "version": "0.1.0",
+  "recommendedTier": "pro-template",
+  "runtimeAdapters": [
+    "cloudflare-worker-static"
+  ],
+  "defaultLocale": "ko",
+  "locales": [
+    "ko",
+    "en"
+  ],
+  "messages": {
+    "ko": {
+      "pages.garden.title": "가든",
+      "studio.labels.import": "가져오기",
+      "studio.labels.explorer": "탐색기",
+      "studio.labels.editor": "편집기",
+      "studio.labels.preview": "미리보기",
+      "studio.labels.commands": "명령",
+      "studio.labels.loadGarden": "가든 불러오기",
+      "studio.labels.importManifest": "Manifest 가져오기",
+      "studio.labels.reset": "초기화",
+      "studio.labels.template": "템플릿",
+      "studio.labels.id": "ID",
+      "studio.labels.version": "버전",
+      "studio.labels.tier": "티어",
+      "studio.labels.locale": "언어",
+      "studio.labels.messages": "메시지",
+      "studio.labels.title": "제목",
+      "studio.labels.route": "경로",
+      "studio.labels.source": "소스",
+      "studio.labels.metadata": "메타데이터",
+      "studio.labels.routes": "경로",
+      "studio.labels.endpoints": "엔드포인트",
+      "studio.labels.environment": "환경",
+      "studio.labels.bindings": "바인딩",
+      "studio.labels.secrets": "시크릿",
+      "studio.labels.gates": "게이트",
+      "studio.labels.importDryRun": "가져오기 Dry-run",
+      "studio.labels.exportPackage": "패키지 내보내기",
+      "studio.labels.packageFiles": "패키지 파일",
+      "studio.labels.theme": "테마",
+      "studio.labels.tokens": "토큰",
+      "studio.labels.cssVariables": "CSS 변수",
+      "studio.labels.configured": "설정됨"
+    },
+    "en": {
+      "pages.garden.title": "Garden",
+      "studio.labels.import": "Import",
+      "studio.labels.explorer": "Explorer",
+      "studio.labels.editor": "Editor",
+      "studio.labels.preview": "Preview",
+      "studio.labels.commands": "Commands",
+      "studio.labels.loadGarden": "Load Garden",
+      "studio.labels.importManifest": "Import Manifest",
+      "studio.labels.reset": "Reset",
+      "studio.labels.template": "Template",
+      "studio.labels.id": "ID",
+      "studio.labels.version": "Version",
+      "studio.labels.tier": "Tier",
+      "studio.labels.locale": "Locale",
+      "studio.labels.messages": "Messages",
+      "studio.labels.title": "Title",
+      "studio.labels.route": "Route",
+      "studio.labels.source": "Source",
+      "studio.labels.metadata": "Metadata",
+      "studio.labels.routes": "Routes",
+      "studio.labels.endpoints": "Endpoints",
+      "studio.labels.environment": "Environment",
+      "studio.labels.bindings": "Bindings",
+      "studio.labels.secrets": "Secrets",
+      "studio.labels.gates": "Gates",
+      "studio.labels.importDryRun": "Import dry-run",
+      "studio.labels.exportPackage": "Export package",
+      "studio.labels.packageFiles": "Package Files",
+      "studio.labels.theme": "Theme",
+      "studio.labels.tokens": "Tokens",
+      "studio.labels.cssVariables": "CSS Variables",
+      "studio.labels.configured": "Configured"
+    }
+  },
+  "pages": [
+    {
+      "id": "garden",
+      "sourceKind": "page_key",
+      "title": "Garden",
+      "route": "/garden/",
+      "metadataRef": "migrations/ui_metadata.sql",
+      "pluginRefs": [
+        "garden"
+      ],
+      "nodes": [
+        {
+          "id": "node_garden_root",
+          "name": "환영 화면 전체",
+          "type": "Container",
+          "props": {},
+          "style": {
+            "padding": "var(--space-lg)"
+          },
+          "states": {},
+          "children": [
+            {
+              "id": "node_garden_heading",
+              "name": "환영 제목",
+              "type": "Heading",
+              "props": {
+                "text": "우리 팀의 지식을 한곳에서 관리하세요",
+                "level": 2
+              },
+              "style": {
+                "color": "var(--color-text)"
+              },
+              "states": {},
+              "children": []
+            },
+            {
+              "id": "node_garden_text",
+              "name": "화면 안내 문구",
+              "type": "Text",
+              "props": {
+                "text": "자료를 기록하고 서로 연결한 뒤, 준비가 되면 공유할 수 있습니다."
+              },
+              "style": {
+                "color": "var(--color-muted-text)"
+              },
+              "states": {},
+              "children": []
+            },
+            {
+              "id": "node_garden_card",
+              "name": "빠른 시작 안내 상자",
+              "type": "Card",
+              "props": {
+                "title": "첫 번째 자료를 등록해 보세요",
+                "description": "새 자료를 추가하고 관련 주제와 연결할 수 있습니다."
+              },
+              "style": {
+                "backgroundColor": "var(--color-surface)",
+                "borderColor": "var(--color-border)",
+                "borderRadius": "var(--radius-md)",
+                "padding": "var(--space-md)"
+              },
+              "states": {
+                "hover": {
+                  "borderColor": "var(--color-primary)"
+                }
+              },
+              "children": [
+                {
+                  "id": "node_garden_button",
+                  "name": "새 자료 등록 버튼",
+                  "type": "Button",
+                  "props": {
+                    "label": "새 자료 등록",
+                    "variant": "primary"
+                  },
+                  "style": {
+                    "backgroundColor": "var(--color-primary)",
+                    "color": "#ffffff",
+                    "borderRadius": "var(--radius-md)",
+                    "padding": "var(--space-sm)"
+                  },
+                  "states": {
+                    "hover": {
+                      "backgroundColor": "#115e59"
+                    }
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "format": "sql",
+    "sources": [
+      "migrations/ui_metadata.sql"
+    ]
+  },
+  "components": [
+    "TEXT",
+    "INPUT",
+    "TEXTAREA",
+    "SELECT",
+    "CHECKBOX",
+    "BUTTON",
+    "GROUP",
+    "WIDGET"
+  ],
+  "plugins": [
+    {
+      "id": "garden",
+      "kind": "page-plugin",
+      "runtimeAdapters": [
+        "cloudflare-worker-static"
+      ],
+      "entry": "public/assets/sdui-garden.js",
+      "provides": {
+        "actions": [
+          "SAVE_GARDEN",
+          "BUILD_GARDEN"
+        ],
+        "hydrators": [
+          "github_repos",
+          "gardens"
+        ],
+        "widgets": [
+          "garden_config_preview",
+          "garden_builds"
+        ]
+      }
+    }
+  ],
+  "api": {
+    "contract": "api-contract.md",
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/api/ui/garden",
+        "auth": "public metadata with role filtering"
+      },
+      {
+        "method": "GET",
+        "path": "/api/git/repos",
+        "auth": "provider:github"
+      },
+      {
+        "method": "POST",
+        "path": "/api/gardens",
+        "auth": "provider:github"
+      }
+    ]
+  },
+  "env": {
+    "bindings": [
+      "DB",
+      "R2"
+    ],
+    "secrets": [
+      "GITHUB_CLIENT_ID",
+      "GITHUB_CLIENT_SECRET"
+    ]
+  },
+  "gating": {
+    "free": [
+      "manual-config-preview",
+      "manual-artifact-handoff"
+    ],
+    "pro-template": [
+      "template-package"
+    ],
+    "hosted": [
+      "managed-deploy",
+      "scheduled-sync",
+      "team-sharing"
+    ]
+  },
+  "risks": [
+    "Managed deploy automation is intentionally outside the first open-core package."
+  ],
+  "theme": {
+    "version": "1.0",
+    "tokens": {
+      "color": {
+        "primary": "#0f766e",
+        "accent": "#f59e0b",
+        "surface": "#ffffff",
+        "background": "#f8fafc",
+        "text": "#111827",
+        "mutedText": "#6b7280",
+        "border": "#e5e7eb",
+        "danger": "#dc2626",
+        "success": "#16a34a"
+      },
+      "typography": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "bodySize": "14px",
+        "headingSize": "24px",
+        "captionSize": "12px",
+        "lineHeight": "1.5"
+      },
+      "space": {
+        "xs": "4px",
+        "sm": "8px",
+        "md": "16px",
+        "lg": "24px",
+        "xl": "32px"
+      },
+      "radius": {
+        "sm": "4px",
+        "md": "8px",
+        "lg": "12px"
+      },
+      "shadow": {
+        "sm": "0 1px 2px rgba(15, 23, 42, 0.08)",
+        "md": "0 8px 24px rgba(15, 23, 42, 0.12)"
+      }
+    }
+  },
+  "documentVersion": 2
+}

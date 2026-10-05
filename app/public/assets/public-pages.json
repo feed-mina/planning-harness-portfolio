@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "origin": "https://harness-meeting-app.kibayerin.workers.dev",
+  "publicPaths": [
+    "/",
+    "/ask-todo-hub/",
+    "/dev-setup/",
+    "/feature/",
+    "/stock/"
+  ],
+  "replaySafePaths": [
+    "/",
+    "/ask-todo-hub/",
+    "/dev-setup/"
+  ]
+}

@@ -1,0 +1,756 @@
+﻿<h1>마이페이지</h1>
+      <div id="guest" hidden>
+        <p class="lead">마이페이지는 로그인 후 이용할 수 있습니다.</p>
+        <div class="login-choice-grid" aria-label="일반 사용자 로그인">
+          <a class="btn btn-primary" href="/api/auth/kakao">카카오톡으로 로그인</a>
+          <a class="btn btn-ghost" href="/api/auth/google">Google로 로그인</a>
+        </div>
+        <p class="hint">일반 사용자는 카카오톡 또는 Google 계정으로 회의록·칸반 흐름을 사용합니다.</p>
+        <a class="btn btn-dark github-login-btn" href="/api/auth/github" aria-label="GitHub로 로그인">
+          <svg class="github-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 .5A11.5 11.5 0 0 0 8.36 22.9c.58.1.79-.25.79-.56v-2.02c-3.22.7-3.9-1.39-3.9-1.39-.53-1.33-1.3-1.69-1.3-1.69-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.78 2.73 1.27 3.4.97.1-.75.41-1.27.74-1.56-2.57-.29-5.28-1.29-5.28-5.73 0-1.27.45-2.3 1.2-3.11-.12-.29-.52-1.47.11-3.07 0 0 .98-.31 3.2 1.19a11.1 11.1 0 0 1 5.82 0c2.22-1.5 3.2-1.19 3.2-1.19.63 1.6.23 2.78.11 3.07.75.81 1.2 1.84 1.2 3.11 0 4.45-2.71 5.43-5.29 5.72.42.36.79 1.07.79 2.16v3.2c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+          <span>개발자 GitHub 로그인</span><span class="badge-soon">dev</span>
+        </a>
+        <div class="panel" style="margin-top:18px">
+          <div class="field-label">이메일 로그인</div>
+          <div class="meta-grid">
+            <label>이메일<input type="text" id="emailAuthEmail" autocomplete="email" /></label>
+            <label>표시 이름<input type="text" id="emailAuthName" autocomplete="name" placeholder="가입할 때만 사용" /></label>
+            <label>비밀번호<input type="password" id="emailAuthPassword" autocomplete="current-password" /></label>
+          </div>
+          <div class="result-actions">
+            <button id="btnEmailLogin" class="btn btn-primary" type="button">이메일 로그인</button>
+            <button id="btnEmailRegister" class="btn btn-ghost" type="button">이메일 가입</button>
+            <button id="btnEmailResetRequest" class="btn btn-ghost" type="button">비밀번호 재설정</button>
+            <span class="hint" id="emailAuthStatus"></span>
+          </div>
+        </div>
+        <div class="panel" id="emailResetPanel" hidden>
+          <div class="field-label">새 비밀번호 설정</div>
+          <div class="meta-grid">
+            <label>새 비밀번호<input type="password" id="emailResetPassword" autocomplete="new-password" /></label>
+          </div>
+          <div class="result-actions">
+            <button id="btnEmailResetConfirm" class="btn btn-primary" type="button">비밀번호 변경</button>
+            <span class="hint" id="emailResetStatus"></span>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="field-label">기기 등록 코드</div>
+          <div class="provider-row">
+            <label>등록 코드<input type="text" id="guestDeviceCode" placeholder="예: AB12CD34" /></label>
+            <label>기기 이름<input type="text" id="guestDeviceName" placeholder="예: 집 노트북" /></label>
+          </div>
+          <div class="result-actions">
+            <button id="btnGuestClaimDeviceCode" class="btn btn-primary" type="button">프록시 키 발급</button>
+            <span class="hint" id="guestDeviceStatus"></span>
+          </div>
+          <div id="guestProxySetupGuide" class="script-preview" style="display:none"></div>
+        </div>
+        <p class="hint">로그인하면 현재 익명 기기의 사용량이 계정으로 연결되고, 내 회의록·기본 git 대상(repo/project)·내 사용량을 관리합니다.</p>
+      </div>
+      <div id="member" hidden>
+        <p class="lead">안녕하세요, <strong id="login">…</strong> 님.</p>
+        <div class="mypage-tabs" role="tablist" aria-label="마이페이지 메뉴">
+          <button class="mypage-tab active" type="button" data-mypage-tab="settings" role="tab" aria-selected="true">설정</button>
+          <button class="mypage-tab" type="button" data-mypage-tab="org" role="tab" aria-selected="false">조직</button>
+          <button class="mypage-tab" type="button" data-mypage-tab="stats" role="tab" aria-selected="false" hidden>통계</button>
+          <button class="mypage-tab" type="button" data-mypage-tab="schedule" role="tab" aria-selected="false">스케줄</button>
+          <button class="mypage-tab" type="button" data-mypage-tab="kanban" role="tab" aria-selected="false">칸반</button>
+        </div>
+
+        <section id="tabSettings" class="mypage-tab-panel">
+          <div class="panel">
+            <div class="usage-budget-head">
+              <div class="field-label">오늘 AI 사용액</div>
+              <div class="usage-reset-actions">
+                <button id="btnResetUsageBudget" class="btn btn-ghost btn-small" type="button">예산 리셋</button>
+                <span class="usage-reset-count">리셋 <strong data-usage-reset-count>0</strong>회</span>
+              </div>
+            </div>
+            <div class="usage-pill" data-usage>…</div>
+            <div class="usage-reset-summary">
+              <span data-usage-previous-wrap hidden>이전 사용금액 <strong data-usage-previous>0원</strong></span>
+              <span>오늘 누적 <strong data-usage-day-total>0원</strong></span>
+            </div>
+            <div class="usage-provider-list" data-usage-providers aria-label="provider별 오늘 AI 비용"></div>
+            <p class="hint">Gemini, GPT, Claude 사용액을 합산해 현재 구간의 한도를 계산합니다. 리셋해도 오늘 누적 기록은 삭제되지 않으며, 금액은 토큰 사용량에 내부 단가표를 곱한 추정치입니다.</p>
+            <p class="hint" id="usageResetStatus" role="status" aria-live="polite"></p>
+          </div>
+
+          <div class="panel">
+            <div class="field-label">예산 알림 · 사용 한도</div>
+            <div class="meta-grid">
+              <label>일 한도(원)<input type="number" id="budgetDailyLimit" min="1" step="100" /></label>
+              <label>알림 임계치(원)<input type="number" id="budgetWarnThreshold" min="1" step="100" /></label>
+              <label>초과 처리
+                <select id="budgetBlockMode">
+                  <option value="block">초과 시 차단</option>
+                  <option value="warn">경고만 표시</option>
+                </select>
+              </label>
+              <label class="toggle-label"><input type="checkbox" id="budgetEmailAlerts" /> 예산 알림 이메일 받기</label>
+            </div>
+            <div class="result-actions">
+              <button id="btnSaveBudget" class="btn btn-primary" type="button">한도 저장</button>
+              <span class="hint" id="budgetStatus"></span>
+            </div>
+          </div>
+
+          <details class="panel settings-accordion agent-subscriptions-accordion" id="agentSubscriptionsPanel">
+            <summary id="agentSubscriptionsSummary" class="agent-subscriptions-summary">
+              <span>
+                <strong>에이전트 구독 잔여 사용량</strong>
+                <small>눌러서 Claude, Codex, GitHub Copilot을 3줄로 확인하세요.</small>
+              </span>
+              <span class="agent-subscriptions-summary-meta">
+                <small id="agentSubscriptionOverview" aria-live="polite">불러오는 중...</small>
+                <em data-accordion-label>열기</em>
+              </span>
+            </summary>
+            <div class="agent-subscriptions-body" id="agentSubscriptionsBody">
+              <div class="agent-subscriptions-toolbar">
+                <p class="hint">플랜·갱신일·핵심 잔여량만 먼저 보여 드립니다. 입력값을 바꾸려면 제공자 행을 여세요.</p>
+                <button id="btnReloadAgentSubscriptions" class="btn btn-ghost btn-small" type="button">새로고침</button>
+              </div>
+              <div id="agentSubscriptionCards" class="agent-subscription-grid" aria-live="polite"></div>
+              <p class="hint" id="agentSubscriptionStatus" role="status" aria-live="polite">구독 정보를 불러오는 중...</p>
+
+              <details class="agent-usage-guide">
+                <summary>
+                  <span>
+                    <strong>내 사용량은 어떻게 가져오나요?</strong>
+                    <small>Claude·Codex·Copilot별 확인 방법</small>
+                  </span>
+                  <em>방법 보기</em>
+                </summary>
+                <div class="agent-usage-guide-body">
+                  <div class="agent-usage-guide-step">
+                    <strong>먼저 확인</strong>
+                    <p>제공자 행에서 구독 정보를 저장한 뒤, 최신 <code>main</code> 기반 작업 복사본에서 실행하세요. <code>app/scripts/usage-bridge.mjs</code>가 없으면 오래된 기능 브랜치라서 명령을 실행할 수 없습니다.</p>
+                  </div>
+                  <div class="agent-usage-guide-step">
+                    <strong>Claude</strong>
+                    <p>Claude Code에서 <code>/usage</code>를 실행한 뒤 결과를 아래 명령에 붙여넣고 Git Bash에서는 <code>Ctrl-D</code>로 입력을 끝냅니다.</p>
+                    <code class="agent-command">node app/scripts/usage-bridge.mjs claude --paste</code>
+                  </div>
+                  <div class="agent-usage-guide-step">
+                    <strong>Codex</strong>
+                    <p>로컬 세션의 최신 5시간·주간 사용량을 읽습니다. 읽지 못하면 아래 붙여넣기 명령을 사용하세요.</p>
+                    <code class="agent-command">node app/scripts/usage-bridge.mjs codex</code>
+                    <code class="agent-command">node app/scripts/usage-bridge.mjs codex --paste</code>
+                  </div>
+                  <div class="agent-usage-guide-step">
+                    <strong>GitHub Copilot</strong>
+                    <p>GitHub의 Billing &amp; licensing에서 직접 확인하세요. 상세 설정의 PAT 자동 수집은 개인 계정의 레거시 premium request 방식만 지원하며, AI Credits·조직·Enterprise 결제에는 아직 맞지 않습니다.</p>
+                  </div>
+                  <p class="agent-usage-guide-footer">브리지에는 신뢰하는 <code>HARNESS_BASE_URL</code>과 <code>HARNESS_TOKEN</code> 또는 <code>HARNESS_SID</code>가 필요합니다. 인증값을 화면·로그·스크린샷에 남기지 마세요. <a href="https://github.com/feed-mina/planning-harness/blob/main/app/docs/usage-bridge.md" target="_blank" rel="noopener noreferrer">전체 사용 가이드 ↗</a></p>
+                </div>
+              </details>
+
+              <div class="agent-subscription-boundary" role="note">
+                <strong>값을 추정하지 않습니다</strong>
+                <span>쿠키·인증 토큰·브라우저 세션을 자동 수집하지 않습니다. 리셋 시각이 지나도 한도가 가득 찼다고 계산하지 않고 새 관측 전까지 <b>오래됨</b>으로 표시합니다.</span>
+              </div>
+            </div>
+          </details>
+
+          <div class="panel">
+            <div class="result-head">
+              <div>
+                <div class="field-label">프록시 기기 등록</div>
+                <p class="hint">Claude Code CLI나 API 클라이언트가 서버 프록시를 경유하도록 기기별 키를 발급합니다.</p>
+              </div>
+              <button id="btnReloadProxyDevices" class="btn btn-ghost btn-small" type="button">새로고침</button>
+            </div>
+            <div class="provider-row">
+              <label>기기 이름<input type="text" id="proxyDeviceName" placeholder="예: 사무실 노트북" /></label>
+              <label>등록 코드<input type="text" id="proxyDeviceCode" placeholder="다른 컴퓨터에서 받은 코드" /></label>
+            </div>
+            <div class="result-actions">
+              <button id="btnCreateProxyDevice" class="btn btn-primary" type="button">이 기기 키 발급</button>
+              <button id="btnCreateDeviceCode" class="btn btn-ghost" type="button">다른 컴퓨터 등록 코드</button>
+              <button id="btnClaimDeviceCode" class="btn btn-ghost" type="button">코드로 등록</button>
+              <span class="hint" id="proxyDeviceStatus"></span>
+            </div>
+            <div id="proxySetupGuide" class="script-preview" style="display:none"></div>
+            <div class="cost-table-wrap" style="margin-top:14px">
+              <table class="cost-table">
+                <thead>
+                  <tr>
+                    <th>기기</th>
+                    <th>키 prefix</th>
+                    <th>상태</th>
+                    <th>최근 사용</th>
+                    <th>관리</th>
+                  </tr>
+                </thead>
+                <tbody id="proxyDeviceRows"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel" id="accountLinkPanel">
+            <div class="field-label">로그인 계정 연결</div>
+            <p class="hint">GitHub·Google·카카오·네이버 계정을 연결하면 어느 로그인 방식을 사용해도 같은 회의록, 스케줄, 칸반과 GitHub 기능을 사용할 수 있습니다. 연결을 해제하면 그 계정으로는 더 이상 로그인할 수 없습니다.</p>
+            <div id="accountLinkList" class="account-link-list"></div>
+            <span class="hint" id="accountLinkStatus"></span>
+          </div>
+
+          <div class="panel">
+            <div class="field-label">AI provider · 모델</div>
+            <div class="provider-row">
+              <label>provider
+                <select id="provider">
+                  <option value="gemini">Gemini API</option>
+                  <option value="claude">Claude (Anthropic)</option>
+                  <option value="openai">codex (OpenAI)</option>
+                </select>
+              </label>
+              <label>모델 <select id="model"></select></label>
+            </div>
+            <p class="hint">기능 페이지는 여기 설정을 따릅니다. 바꾸지 않으면 <strong>Gemini API</strong>.</p>
+          </div>
+
+          <details class="settings-accordion" id="stageSettingsAccordion">
+            <summary>
+              <span>
+                <strong>단계별 AI 모델</strong>
+                <small>회의록 변환, 문서 요약, 아이디어 도출, 플랜 생성 단계별 모델을 조정합니다.</small>
+              </span>
+              <em data-accordion-label>열기</em>
+            </summary>
+            <div class="settings-accordion-body">
+              <div id="stageSettings" class="stage-settings"></div>
+              <p class="hint">분석용은 문서·수치 추론 중심, 인터넷서치용은 외부 근거 검색이 필요한 단계용 모델만 보여줍니다.</p>
+            </div>
+          </details>
+
+          <details class="settings-accordion" id="promptSettingsAccordion">
+            <summary>
+              <span>
+                <strong>커스텀 AI 프롬프트</strong>
+                <small>편집하면 회의록 요약 단계에서 이 프롬프트를 사용합니다.</small>
+              </span>
+              <em data-accordion-label>열기</em>
+            </summary>
+            <div class="settings-accordion-body">
+              <div class="result-head">
+                <span class="field-label">커스텀 AI 프롬프트 <span class="editable-tag">(편집 시 이 프롬프트로 요약)</span></span>
+                <button id="btnResetPrompt" class="btn btn-ghost btn-small" type="button">기본값으로</button>
+              </div>
+              <textarea id="prompt" rows="16" spellcheck="false"></textarea>
+              <p class="hint">플레이스홀더: <code>{{date}}</code> <code>{{time}}</code> <code>{{subject}}</code> <code>{{attendees}}</code> <code>{{transcript}}</code>. 비우고 저장하면 기본 프롬프트로 복귀.</p>
+            </div>
+          </details>
+
+          <div class="result-actions">
+            <button id="btnSaveSettings" class="btn btn-primary">설정 저장</button>
+            <span class="hint" id="saveStatus"></span>
+          </div>
+
+          <div class="panel" id="gitDefaultsPanel" style="margin-top:18px">
+            <div class="result-head">
+              <span class="field-label">기본 git 대상</span>
+              <button id="btnReloadGit" class="btn btn-ghost btn-small" type="button">↻ 목록 새로고침</button>
+            </div>
+            <p class="hint">회의록 → 이슈 생성 시 기본으로 채워질 repo / Project. 기능 페이지에서 그때그때 바꿀 수 있습니다.</p>
+            <div class="provider-row">
+              <label>repo <select id="gitRepo"><option value="">(선택 안 함)</option></select></label>
+              <label>Project <select id="gitProject"><option value="">(선택 안 함)</option></select></label>
+            </div>
+            <div class="result-actions">
+              <button id="btnSaveGit" class="btn btn-primary">기본 git 대상 저장</button>
+              <span class="hint" id="gitStatus"></span>
+            </div>
+            <div class="schedule-source-manager">
+              <div class="result-head">
+                <div>
+                  <strong>일정·칸반 연결</strong>
+                  <p class="hint">여러 repo와 GitHub Project를 연결하면 두 화면에서 같은 프로젝트 업무를 불러옵니다.</p>
+                </div>
+                <button id="btnAddScheduleSource" class="btn btn-ghost btn-small" type="button">연결 추가</button>
+              </div>
+              <div id="scheduleSourceRows" class="schedule-source-rows"></div>
+              <div class="result-actions">
+                <button id="btnSaveScheduleSources" class="btn btn-primary" type="button">일정·칸반 연결 저장</button>
+                <span class="hint" id="scheduleSourceStatus"></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tabOrg" class="mypage-tab-panel" hidden>
+          <div class="panel">
+            <div class="result-head">
+              <div>
+                <div class="field-label">조직 관리</div>
+                <p class="hint">관리자는 조직 전체 비용과 멤버를 보고, 일반 멤버는 본인 사용량만 봅니다.</p>
+              </div>
+              <button id="btnReloadOrgs" class="btn btn-ghost btn-small" type="button">새로고침</button>
+            </div>
+            <div class="provider-row">
+              <label>새 조직 이름<input type="text" id="orgName" placeholder="예: LoopDev 팀" /></label>
+              <label>조직 선택<select id="orgSelect"><option value="">조직 없음</option></select></label>
+            </div>
+            <div class="result-actions">
+              <button id="btnCreateOrg" class="btn btn-primary" type="button">조직 생성</button>
+              <span class="hint" id="orgStatus">조직 정보를 불러오는 중...</span>
+            </div>
+          </div>
+
+          <div class="panel" id="orgDetailPanel" hidden>
+            <div class="result-head">
+              <div>
+                <div class="field-label" id="orgTitle">조직</div>
+                <p class="hint" id="orgRoleHint"></p>
+              </div>
+              <label style="max-width:140px">기간
+                <select id="orgUsagePeriod">
+                  <option value="day">일</option>
+                  <option value="week">주</option>
+                  <option value="month" selected>월</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="cost-kpi-grid">
+              <div><span>비용 합계</span><strong id="orgCostTotal">–</strong></div>
+              <div><span>예산</span><strong id="orgBudgetTotal">–</strong></div>
+              <div><span>소진율</span><strong id="orgBudgetRate">–</strong></div>
+            </div>
+            <div class="budget-meter" aria-label="조직 예산 소진율"><span id="orgBudgetFill"></span></div>
+            <div class="result-actions">
+              <button id="btnExportOrgUsage" class="btn btn-ghost btn-small" type="button" hidden>Excel(.xlsx) 내보내기</button>
+              <label class="toggle-label" id="orgExportRawWrap" hidden><input type="checkbox" id="orgExportRawIdentifiers" /> 원본 식별자 포함</label>
+              <span class="hint">조직 전체 계정/기기 사용량은 관리자에게만 표시됩니다.</span>
+            </div>
+
+            <div class="panel" id="orgGardensPanel" style="margin-top:18px">
+              <div class="result-head">
+                <div>
+                  <div class="field-label">조직 Garden</div>
+                  <p class="hint">조직에 연결된 Garden 목록입니다. 실제 문서 접근은 Pages의 Cloudflare Access 정책이 결정합니다.</p>
+                </div>
+                <button id="btnReloadOrgGardens" class="btn btn-ghost btn-small" type="button">새로고침</button>
+              </div>
+              <div id="orgGardenRows" class="post-list"></div>
+              <span class="hint" id="orgGardenStatus">조직 Garden을 불러오는 중...</span>
+            </div>
+
+            <div class="panel" id="orgPolicyPanel" style="margin-top:18px" hidden>
+              <div class="field-label">보안·알림 정책</div>
+              <div class="meta-grid">
+                <label class="toggle-label"><input type="checkbox" id="orgRevealIdentifiers" /> 관리자 화면에 원본 계정/기기 식별자 표시</label>
+                <label class="toggle-label"><input type="checkbox" id="orgRawExport" /> Excel(.xlsx) 원본 식별자 내보내기 허용</label>
+                <label class="toggle-label"><input type="checkbox" id="orgAdminOverageEmail" /> 멤버/기기 예산 초과 관리자 이메일 알림</label>
+                <label>감사 로그 보존일<input type="number" id="orgAuditRetentionDays" min="30" max="365" step="1" /></label>
+              </div>
+              <div class="result-actions">
+                <button id="btnSaveOrgPolicy" class="btn btn-primary" type="button">정책 저장</button>
+                <button id="btnReloadOrgAudit" class="btn btn-ghost btn-small" type="button">감사 로그 새로고침</button>
+                <span class="hint" id="orgPolicyStatus"></span>
+              </div>
+              <div class="cost-table-wrap" style="margin-top:14px">
+                <table class="cost-table">
+                  <thead>
+                    <tr>
+                      <th>시간</th>
+                      <th>동작</th>
+                      <th>대상</th>
+                      <th>행위자</th>
+                    </tr>
+                  </thead>
+                  <tbody id="orgAuditRows"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel" id="orgInvitePanel" style="margin-top:18px" hidden>
+              <div class="field-label">멤버 초대</div>
+              <div class="provider-row">
+                <label>이메일<input type="text" id="orgInviteEmail" placeholder="member@example.com" /></label>
+                <label>역할
+                  <select id="orgInviteRole">
+                    <option value="member">일반</option>
+                    <option value="admin">관리자</option>
+                  </select>
+                </label>
+              </div>
+              <div class="result-actions">
+                <button id="btnInviteOrgMember" class="btn btn-primary" type="button">초대 생성</button>
+                <span class="hint" id="orgInviteStatus"></span>
+              </div>
+            </div>
+
+            <div class="cost-table-wrap" style="margin-top:18px">
+              <table class="cost-table">
+                <thead>
+                  <tr>
+                    <th>멤버</th>
+                    <th>역할</th>
+                    <th>요청</th>
+                    <th>토큰</th>
+                    <th>비용</th>
+                    <th>관리</th>
+                  </tr>
+                </thead>
+                <tbody id="orgMemberRows"></tbody>
+              </table>
+            </div>
+
+            <div class="cost-table-wrap" id="orgDeviceUsageWrap" style="margin-top:18px" hidden>
+              <table class="cost-table">
+                <thead>
+                  <tr>
+                    <th>기기</th>
+                    <th>소유 범위</th>
+                    <th>요청</th>
+                    <th>토큰</th>
+                    <th>비용</th>
+                    <th>최근 사용</th>
+                  </tr>
+                </thead>
+                <tbody id="orgDeviceRows"></tbody>
+              </table>
+            </div>
+
+            <div class="cost-table-wrap" id="orgInviteTableWrap" style="margin-top:18px" hidden>
+              <table class="cost-table">
+                <thead>
+                  <tr>
+                    <th>초대 이메일</th>
+                    <th>역할</th>
+                    <th>상태</th>
+                    <th>초대 링크</th>
+                  </tr>
+                </thead>
+                <tbody id="orgInviteRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="tabStats" class="mypage-tab-panel" hidden>
+          <div class="panel">
+            <div class="field-label">오늘 provider별 AI 비용</div>
+            <div class="usage-provider-list" data-usage-providers aria-label="provider별 오늘 AI 비용"></div>
+            <p class="hint">일 한도는 아래 provider별 금액을 모두 합친 금액으로 차감됩니다.</p>
+          </div>
+
+          <div class="panel">
+            <div class="result-head">
+              <div>
+                <div class="field-label">통합 히스토리</div>
+                <p class="hint">회의록 만들기와 분석설계에서 생성된 작업 세션을 함께 봅니다.</p>
+              </div>
+              <div class="result-actions compact-actions">
+                <a class="btn btn-ghost btn-small" href="/feature/">새 회의록</a>
+                <a class="btn btn-ghost btn-small" href="/analysis-edit2/">분석설계 - (수정중)</a>
+                <button id="btnReloadHistory" class="btn btn-ghost btn-small" type="button">새로고침</button>
+              </div>
+            </div>
+
+            <div class="history-kpis">
+              <div><span id="histTotal">0</span><small>전체</small></div>
+              <div><span id="histMeetings">0</span><small>회의록</small></div>
+              <div><span id="histAnalysis">0</span><small>분석설계</small></div>
+              <div><span id="histFavorites">0</span><small>고정</small></div>
+            </div>
+
+            <div class="history-filters">
+              <label>검색<input type="search" id="historySearch" placeholder="제목, 주제, 태그 검색" /></label>
+              <label>유형
+                <select id="historyKind">
+                  <option value="">전체</option>
+                  <option value="meeting">회의록</option>
+                  <option value="analysis">분석설계</option>
+                </select>
+              </label>
+              <label>프로젝트·주제<input type="search" id="historyProject" placeholder="프로젝트/주제" /></label>
+              <label>파일명<input type="search" id="historyFile" placeholder="분석파일명" /></label>
+              <label>태그
+                <select id="historyTag">
+                  <option value="">전체 태그</option>
+                </select>
+              </label>
+              <label class="check-row"><input type="checkbox" id="historyFavoriteOnly" /> 고정만</label>
+            </div>
+
+            <div class="history-report-bar">
+              <span class="hint" id="historyStatus">불러오는 중…</span>
+              <div class="result-actions compact-actions">
+                <button id="btnHistoryReport" class="btn btn-ghost btn-small" type="button" style="display:none" disabled>선택 보고서 PDF</button>
+                <button id="btnHistoryReportPdf" class="btn btn-primary btn-small" type="button" disabled>선택 보고서 PDF</button>
+              </div>
+            </div>
+
+            <div id="historyList" class="history-list"></div>
+            <nav id="historyPagination" class="history-pagination" aria-label="통합 히스토리 페이지" hidden></nav>
+          </div>
+
+          <div class="panel ai-perf-panel">
+            <div class="result-head">
+              <div>
+                <div class="field-label">AI 성능</div>
+                <p class="hint">stage, prompt version, provider/model 별 정확도·속도·비용·실패율을 비교합니다.</p>
+              </div>
+              <div class="result-actions compact-actions">
+                <button id="btnReloadEval" class="btn btn-ghost btn-small" type="button">새로고침</button>
+                <button id="btnEvalHtml" class="btn btn-ghost btn-small" type="button">PDF</button>
+                <button id="btnEvalMd" class="btn btn-ghost btn-small md-download-control" type="button" style="display:none">문서</button>
+                <button id="btnEvalCsv" class="btn btn-ghost btn-small" type="button">Excel</button>
+              </div>
+            </div>
+
+            <div class="history-kpis ai-kpis">
+              <div><span id="evalCaseCount">0</span><small>평가 케이스</small></div>
+              <div><span id="evalRunCount">0</span><small>실행</small></div>
+              <div><span id="evalSuccessCount">0</span><small>성공</small></div>
+              <div><span id="evalFallbackCount">0</span><small>fallback</small></div>
+            </div>
+
+            <div class="eval-controls">
+              <label>평가 케이스
+                <select id="evalCaseSelect"></select>
+              </label>
+              <label>반복
+                <select id="evalRepeat">
+                  <option value="1">1회</option>
+                  <option value="2">2회</option>
+                  <option value="3">3회</option>
+                </select>
+              </label>
+              <div class="eval-models" id="evalModelChecks"></div>
+              <button id="btnRunEval" class="btn btn-primary btn-small" type="button">선택 모델 실행</button>
+            </div>
+
+            <details class="eval-results-accordion" open>
+              <summary>
+                <span class="hint" id="evalStatus">평가 데이터를 불러오는 중...</span>
+                <span class="eval-accordion-action" aria-hidden="true"></span>
+              </summary>
+              <div class="eval-results-content">
+                <div class="cost-table-wrap">
+                  <table class="cost-table">
+                <thead>
+                  <tr>
+                    <th>stage</th>
+                    <th>prompt version</th>
+                    <th>provider/model</th>
+                    <th>accuracy</th>
+                    <th>schema/source</th>
+                    <th>latency p50/p95</th>
+                    <th>avg token/cost</th>
+                    <th>failure/fallback</th>
+                  </tr>
+                </thead>
+                    <tbody id="evalPerfRows"></tbody>
+                  </table>
+                </div>
+
+                <div class="cost-table-wrap eval-recent-wrap">
+                  <table class="cost-table">
+                <thead>
+                  <tr>
+                    <th>최근 실행</th>
+                    <th>provider/model</th>
+                    <th>성공</th>
+                    <th>자동 지표</th>
+                    <th>속도/비용</th>
+                  </tr>
+                </thead>
+                    <tbody id="evalRecentRows"></tbody>
+                  </table>
+                </div>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="tabSchedule" class="mypage-tab-panel" hidden>
+          <div class="schedule-page">
+            <div class="schedule-hero">
+              <div>
+                <span class="field-label">마이페이지 스케줄</span>
+                <h2>내 일정과 완료 기록을 한눈에</h2>
+                <p class="hint">시간 블록과 기존 히스토리를 서버 시각 기준으로 모아 봅니다.</p>
+              </div>
+              <div class="result-actions compact-actions">
+                <button id="btnReloadSchedule" class="btn btn-ghost btn-small" type="button">새로고침</button>
+              </div>
+            </div>
+            <p class="hint" id="scheduleStatus">스케줄 데이터를 불러오는 중...</p>
+
+            <div id="scheduleSummary" class="schedule-stats" aria-label="스케줄 요약"></div>
+
+            <section class="schedule-calendar-panel" aria-labelledby="scheduleCalendarTitle">
+              <div class="schedule-calendar-toolbar">
+                <div class="schedule-calendar-nav">
+                  <button class="btn btn-ghost btn-small" type="button" data-schedule-nav="prev" aria-label="이전 기간">이전</button>
+                  <button class="btn btn-ghost btn-small" type="button" data-schedule-nav="today">오늘</button>
+                  <button class="btn btn-ghost btn-small" type="button" data-schedule-nav="next" aria-label="다음 기간">다음</button>
+                </div>
+                <h3 id="scheduleCalendarTitle"></h3>
+                <div class="schedule-view-toggle" role="group" aria-label="달력 보기">
+                  <button class="btn btn-ghost btn-small is-active" type="button" data-schedule-view="week">주간</button>
+                  <button class="btn btn-ghost btn-small" type="button" data-schedule-view="month">월간</button>
+                </div>
+              </div>
+              <div id="scheduleCalendar"></div>
+            </section>
+
+            <div class="schedule-list-toolbar">
+              <div class="schedule-tabs" role="tablist" aria-label="일정 시점">
+                <button type="button" role="tab" class="is-active" data-schedule-tab="upcoming" aria-selected="true">예정</button>
+                <button type="button" role="tab" data-schedule-tab="past" aria-selected="false">지난</button>
+              </div>
+              <details class="schedule-filter-fold">
+                <summary>
+                  <strong>필터</strong>
+                  <span id="scheduleFilterSummary">전체 유형 · 전체 프로젝트 · 날짜 전체</span>
+                </summary>
+                <div class="schedule-filter-body">
+                  <div class="schedule-filter-chips" aria-label="일정 유형">
+                    <button type="button" class="is-active" data-schedule-kind="all" aria-pressed="true">전체</button>
+                    <button type="button" data-schedule-kind="available" aria-pressed="false">가능</button>
+                    <button type="button" data-schedule-kind="busy" aria-pressed="false">바쁨</button>
+                    <button type="button" data-schedule-kind="focus" aria-pressed="false">집중</button>
+                    <button type="button" data-schedule-kind="meeting" aria-pressed="false">회의</button>
+                    <button type="button" data-schedule-kind="history" aria-pressed="false">완료 기록</button>
+                    <button type="button" data-schedule-kind="github" aria-pressed="false">GitHub</button>
+                  </div>
+                  <label class="schedule-project-filter">
+                    <span>프로젝트</span>
+                    <select id="scheduleProject"><option value="all">전체 프로젝트</option></select>
+                  </label>
+                  <label class="schedule-project-filter">
+                    <span>Repository</span>
+                    <select id="scheduleRepository"><option value="all">전체 Repository</option></select>
+                  </label>
+                  <button class="btn btn-ghost btn-small" type="button" data-schedule-clear>필터 초기화</button>
+                </div>
+              </details>
+            </div>
+
+            <section id="scheduleTimeline" class="schedule-timeline" aria-live="polite"></section>
+          </div>
+        </section>
+
+        <section id="tabKanban" class="mypage-tab-panel" hidden>
+          <div class="schedule-page">
+            <div class="schedule-hero">
+              <div>
+                <span class="field-label">마이페이지 칸반</span>
+                <h2>업무 우선순위 매트릭스</h2>
+                <p class="hint">보드의 과업 카드와 기존 일정을 중요도·긴급도 기준으로 분류하고, 완료와 미분류 항목도 함께 확인합니다.</p>
+              </div>
+              <div class="result-actions compact-actions">
+                <button id="btnReloadKanban" class="btn btn-ghost btn-small" type="button">새로고침</button>
+              </div>
+            </div>
+            <div class="priority-matrix-guide" role="note">
+              <strong>이동 방법</strong>
+              <span>카드를 클릭한 뒤 목적지 영역을 클릭하거나, 카드를 직접 끌어다 놓으세요.</span>
+              <span>GitHub 이슈 연결 카드: 중요도·긴급도 라벨과 완료 상태를 동기화합니다. 별도 관리 비밀번호 대신 로그인한 계정의 GitHub 연결 권한을 사용합니다.</span>
+              <span>GitHub 이슈가 없는 카드와 기존 일정: 위치를 이 브라우저에만 저장합니다. 미분류로 옮기면 연결 이슈의 우선순위 라벨을 해제합니다.</span>
+            </div>
+            <div class="kanban-filter-grid">
+              <label class="kanban-project-filter">
+                <span>GitHub Project 기준</span>
+                <select id="kanbanProject"><option value="all">전체 Project</option></select>
+              </label>
+              <div class="kanban-repository-filter">
+                <span>GitHub Repository 기준</span>
+                <details class="kanban-repository-picker" id="kanbanRepositoryPicker">
+                  <summary id="kanbanRepositorySummary">전체 Repository</summary>
+                  <div class="kanban-repository-menu">
+                    <div class="kanban-repository-menu-head">
+                      <strong>Repository 추가</strong>
+                      <button class="btn-link" id="btnClearKanbanRepositories" type="button">전체 보기</button>
+                    </div>
+                    <div class="kanban-repository-options" id="kanbanRepositoryOptions" aria-label="Repository 선택"></div>
+                  </div>
+                </details>
+                <div class="kanban-repository-chips" id="kanbanRepositoryChips" aria-live="polite" hidden></div>
+              </div>
+            </div>
+            <p class="hint" id="kanbanPriorityStatus" aria-live="polite">업무 카드를 불러오는 중...</p>
+            <div id="scheduleMatrix" class="schedule-matrix"></div>
+            <div id="scheduleMatrixExtras" class="schedule-matrix-extras"></div>
+          </div>
+        </section>
+
+        <div class="modal-backdrop" id="historyModalBackdrop" hidden></div>
+        <section class="history-modal" id="historyModal" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle" hidden>
+          <div class="history-modal-head">
+            <div>
+              <span class="source-badge" id="historyModalSource">히스토리</span>
+              <h2 id="historyModalTitle">상세</h2>
+            </div>
+            <button class="side-close" id="btnCloseHistoryModal" type="button" aria-label="상세 닫기">✕</button>
+          </div>
+          <div class="history-modal-actions" id="historyModalActions"></div>
+          <div class="history-modal-body" id="historyModalBody">
+            <p class="hint">불러오는 중...</p>
+          </div>
+        </section>
+
+        <div class="modal-backdrop" id="scheduleDayModalBackdrop" hidden></div>
+        <section class="history-modal schedule-day-modal" id="scheduleDayModal" role="dialog" aria-modal="true" aria-labelledby="scheduleDayModalTitle" hidden tabindex="-1">
+          <div class="history-modal-head">
+            <div>
+              <span class="source-badge analysis">일일 일정</span>
+              <h2 id="scheduleDayModalTitle">날짜</h2>
+            </div>
+            <button class="side-close" id="btnCloseScheduleDayModal" type="button" aria-label="일일 일정 닫기">✕</button>
+          </div>
+          <div class="history-modal-body" id="scheduleDayModalBody"></div>
+        </section>
+
+        <div class="modal-backdrop" id="scheduleModalBackdrop" hidden></div>
+        <section class="history-modal schedule-modal" id="scheduleModal" role="dialog" aria-modal="true" aria-labelledby="scheduleModalTitle" hidden>
+          <div class="history-modal-head">
+            <div>
+              <span class="source-badge analysis" id="scheduleModalRepo">GitHub</span>
+              <h2 id="scheduleModalTitle">스케줄 피드백</h2>
+            </div>
+            <button class="side-close" id="btnCloseScheduleModal" type="button" aria-label="스케줄 피드백 닫기">✕</button>
+          </div>
+          <div class="history-modal-body">
+            <div class="schedule-modal-grid">
+              <label>기존 이슈 번호
+                <input id="scheduleIssueNumber" type="number" min="1" inputmode="numeric" placeholder="비우면 새 이슈 생성" />
+              </label>
+              <label>이슈 제목
+                <input id="scheduleIssueTitle" type="text" maxlength="200" />
+              </label>
+            </div>
+            <label class="schedule-field">피드백
+              <textarea id="scheduleFeedbackText" rows="7" placeholder="의견, 보완할 내용, 확인할 사람 등을 적어 주세요."></textarea>
+            </label>
+            <div class="schedule-upload-box">
+              <label class="schedule-field">관련 자료
+                <input id="scheduleFiles" type="file" multiple />
+              </label>
+              <p class="hint">자료 본문은 GitHub가 아니라 비공개 R2 저장소에 보관되고, GitHub 이슈에는 다운로드 링크만 남습니다.</p>
+            </div>
+            <div class="result-actions">
+              <button id="btnScheduleSubmit" class="btn btn-primary" type="button">이슈에 등록</button>
+              <button id="btnScheduleUpload" class="btn btn-ghost" type="button">자료만 등록</button>
+              <button id="btnScheduleCopy" class="btn btn-ghost" type="button">본문 복사</button>
+              <span class="hint" id="scheduleModalStatus"></span>
+            </div>
+            <div class="schedule-assets-panel">
+              <div class="result-head">
+                <div>
+                  <div class="field-label">등록된 자료</div>
+                  <p class="hint">현재 스케줄 카드 기준으로 불러옵니다.</p>
+                </div>
+                <button id="btnScheduleReloadAssets" class="btn btn-ghost btn-small" type="button">자료 불러오기</button>
+              </div>
+              <div id="scheduleAssetList" class="schedule-asset-list"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <p class="foot">기획 하네스 루프 프로젝트</p>

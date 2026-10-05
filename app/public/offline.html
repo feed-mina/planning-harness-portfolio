@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2f6fed" />
+  <title>오프라인 | 기획 하네스 루프</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="/assets/pwa-icon-192.png" />
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: #f4f7fc; color: #172033; }
+    main { width: min(30rem, calc(100% - 3rem)); padding: 2.5rem; text-align: center; background: #fff; border: 1px solid #dce4f2; border-radius: 1.5rem; box-shadow: 0 1rem 3rem rgb(35 57 91 / 12%); }
+    img { width: 5rem; height: 5rem; border-radius: 1.25rem; }
+    h1 { margin: 1.25rem 0 0.75rem; font-size: 1.6rem; }
+    p { margin: 0 0 1.5rem; color: #526078; line-height: 1.6; }
+    button { border: 0; border-radius: 0.75rem; padding: 0.8rem 1.2rem; background: #2f6fed; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #101522; color: #f5f7fb; }
+      main { background: #181f2f; border-color: #2b354a; }
+      p { color: #abb7cc; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/assets/pwa-icon-192.png" alt="" />
+    <h1>인터넷 연결이 없습니다</h1>
+    <p>연결을 확인한 뒤 다시 시도해 주세요. 이전에 열었던 화면은 오프라인에서도 일부 사용할 수 있습니다.</p>
+    <button type="button" onclick="location.reload()">다시 시도</button>
+  </main>
+</body>
+</html>

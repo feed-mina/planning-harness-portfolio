@@ -1,0 +1,14 @@
+{
+  "name": "planning-harness",
+  "version": "0.5.0",
+  "description": "기획자용 상세기획 자동화 하네스 — 8개 기획·핸드오프 명령 + 검증된 AI SDUI 생성 스킬 + 회의록→GitHub Issue/Project 동기화 엔진. 모든 위험 작업은 사람 승인 게이트.",
+  "author": {
+    "name": "feed-mina",
+    "url": "https://github.com/feed-mina"
+  },
+  "homepage": "https://github.com/feed-mina/planning-harness",
+  "repository": "https://github.com/feed-mina/planning-harness",
+  "license": "MIT",
+  "keywords": ["planning", "spec", "requirements", "github-projects", "meeting-notes", "github-actions", "ai-agent", "korean"],
+  "commands": ["./.claude/commands/"]
+}

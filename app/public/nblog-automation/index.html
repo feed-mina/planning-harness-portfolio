@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>블로그 체험단 자동화 · 캠페인 운영 센터</title>
+  <meta name="description" content="사진과 영상으로 블로그 후기 초안을 만들고 확인하는 화면입니다." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/png" href="/assets/loopdev-logo-1024.png" />
+  <link rel="apple-touch-icon" href="/assets/loopdev-logo-1024.png" />
+  <link rel="stylesheet" href="/assets/styles.css?v=20260723-1" />
+  <link rel="stylesheet" href="/assets/nblog-automation.css?v=20260723-1" />
+</head>
+<body data-page="nblog-automation" data-browser-policy="assisted_input_manual_publish">
+  <div class="wrap nblog-wrap">
+    <main class="nblog-dashboard" aria-labelledby="nblogPageTitle">
+      <header class="nblog-hero">
+        <div>
+          <span class="nblog-eyebrow">블로그 체험단 자동화</span>
+          <h1 id="nblogPageTitle">캠페인 운영 센터</h1>
+          <p>사진과 영상을 올리면 블로그 후기 초안을 만들어 드립니다. 읽고 확인한 뒤 네이버에 올리시면 됩니다.</p>
+        </div>
+        <div class="nblog-hero-actions">
+          <a class="nblog-link-button" href="https://github.com/feed-mina/auto-marketing-Nblog/issues/1" target="_blank" rel="noopener noreferrer">제품 소개</a>
+          <a class="nblog-link-button" href="https://github.com/feed-mina/auto-marketing-Nblog/issues/15" target="_blank" rel="noopener noreferrer">개발 현황</a>
+          <button class="nblog-link-button" id="promptProfilesButton" type="button">글 작성 규칙</button>
+          <button class="nblog-link-button" id="syncTokenButton" type="button">내 PC 연결</button>
+          <button class="nblog-primary-button" id="newCampaignButton" type="button">새 캠페인</button>
+        </div>
+      </header>
+
+      <!-- 정상 연결일 때는 숨긴다. 문제가 있을 때만 알리면 된다. -->
+      <section class="nblog-notice" id="handoffNotice" aria-label="연결 상태" hidden>
+        <span class="nblog-notice-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 8v4m0 4h.01M10.3 4.4 3.4 17a2 2 0 0 0 1.8 3h13.6a2 2 0 0 0 1.8-3L13.7 4.4a2 2 0 0 0-3.4 0Z"/></svg>
+        </span>
+        <div>
+          <strong id="backendStatusTitle">연결을 확인하고 있습니다.</strong>
+          <span id="backendStatusMessage">잠시만 기다려주세요.</span>
+        </div>
+        <button type="button" id="retryConnection">다시 시도</button>
+      </section>
+
+      <section class="nblog-kpi-grid" aria-label="캠페인 요약">
+        <button class="nblog-kpi is-active" type="button" data-kpi-filter="all" aria-pressed="true">
+          <span>전부</span><strong id="kpiAll">0</strong><small>등록한 캠페인</small>
+        </button>
+        <button class="nblog-kpi" type="button" data-kpi-filter="active" aria-pressed="false">
+          <span>글 만드는 중</span><strong id="kpiActive">0</strong><small>사진으로 작성 중</small>
+        </button>
+        <button class="nblog-kpi" type="button" data-kpi-filter="approval" aria-pressed="false">
+          <span>확인할 글</span><strong id="kpiApproval">0</strong><small>읽고 확인하면 됨</small>
+        </button>
+        <button class="nblog-kpi" type="button" data-kpi-filter="scheduled" aria-pressed="false">
+          <span>올릴 준비 완료</span><strong id="kpiScheduled">0</strong><small>블로그에 올리면 끝</small>
+        </button>
+        <button class="nblog-kpi nblog-kpi-alert" type="button" data-kpi-filter="attention" aria-pressed="false">
+          <span>손봐야 함</span><strong id="kpiAttention">0</strong><small>실패했거나 막힘</small>
+        </button>
+      </section>
+
+      <div class="nblog-layout">
+        <section class="nblog-surface nblog-campaigns" aria-labelledby="campaignHeading">
+          <div class="nblog-section-head">
+            <div>
+              <span class="nblog-section-kicker">캠페인</span>
+              <h2 id="campaignHeading">내 캠페인</h2>
+            </div>
+            <div class="nblog-sync">
+              <span id="syncLabel">확인 중</span>
+              <button id="refreshCampaigns" type="button" aria-label="목록 새로고침" title="새로고침">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 8.5A7 7 0 0 1 18.6 7L20 12M4 12l1.4 5a7 7 0 0 0 12.5-1.5"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="nblog-toolbar">
+            <label class="nblog-search">
+              <span class="sr-only">캠페인 검색</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg>
+              <input id="campaignSearch" type="search" placeholder="캠페인 이름으로 찾기" autocomplete="off" />
+            </label>
+            <div class="nblog-filter-tabs" id="campaignFilters" role="group" aria-label="상태로 거르기">
+              <button type="button" data-filter="all" aria-pressed="true" class="is-active">전부</button>
+              <button type="button" data-filter="active" aria-pressed="false">글 만드는 중</button>
+              <button type="button" data-filter="approval" aria-pressed="false">확인할 글</button>
+              <button type="button" data-filter="scheduled" aria-pressed="false">올릴 준비 완료</button>
+              <button type="button" data-filter="attention" aria-pressed="false">손봐야 함</button>
+              <button type="button" data-filter="archived" aria-pressed="false">보관함</button>
+            </div>
+          </div>
+
+          <div class="nblog-list" id="campaignList" aria-live="polite"></div>
+          <p class="nblog-empty" id="campaignEmpty" hidden>조건에 맞는 캠페인이 없습니다.</p>
+        </section>
+
+        <aside class="nblog-side-stack" aria-label="예정과 안전장치">
+          <section class="nblog-surface nblog-schedule-panel" aria-labelledby="scheduleHeading">
+            <div class="nblog-section-head nblog-section-head-compact">
+              <div>
+                <span class="nblog-section-kicker">예정</span>
+                <h2 id="scheduleHeading">올릴 예정</h2>
+              </div>
+              <span class="nblog-date-chip" id="currentDateChip">오늘</span>
+            </div>
+            <ol class="nblog-schedule-list" id="scheduleList"></ol>
+            <p class="nblog-mini-empty" id="scheduleEmpty" hidden>오늘 올릴 캠페인이 없습니다.</p>
+          </section>
+
+          <section class="nblog-surface nblog-safety-panel" aria-labelledby="safetyHeading">
+            <div class="nblog-section-head nblog-section-head-compact">
+              <div>
+                <span class="nblog-section-kicker">안전장치</span>
+                <h2 id="safetyHeading">자동으로 지키는 것들</h2>
+              </div>
+              <span class="nblog-health" id="backendHealth"><i></i> 확인 중</span>
+            </div>
+            <ul class="nblog-safety-list">
+              <li><span class="nblog-check" aria-hidden="true">✓</span><div><strong>한 번에 두 개까지</strong><small>여러 캠페인을 동시에 돌려도 순서대로 처리합니다</small></div></li>
+              <li><span class="nblog-check" aria-hidden="true">✓</span><div><strong>같은 글 두 번 안 만듦</strong><small>같은 캠페인·방문일이면 하나로 봅니다</small></div></li>
+              <li><span class="nblog-check" aria-hidden="true">✓</span><div><strong>확인 전에는 못 올림</strong><small>직접 읽고 확인해야 다음 단계로 갑니다</small></div></li>
+              <li><span class="nblog-check" aria-hidden="true">✓</span><div><strong>비밀번호 저장 안 함</strong><small>네이버 계정 정보는 서버에 남지 않습니다</small></div></li>
+              <li><span class="nblog-check" aria-hidden="true">✓</span><div><strong>발행은 직접</strong><small>네이버 정책상 마지막 등록은 사람이 합니다</small></div></li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+
+      <section class="nblog-surface nblog-audit" aria-labelledby="auditHeading">
+        <div class="nblog-section-head">
+          <div>
+            <span class="nblog-section-kicker">작업 기록</span>
+            <h2 id="auditHeading">지금까지 한 일</h2>
+          </div>
+          <span class="nblog-audit-note">언제 무엇을 했는지 남겨둡니다</span>
+        </div>
+        <div class="nblog-table-wrap">
+          <table>
+            <thead><tr><th>캠페인</th><th>결과</th><th>처리 시각</th><th>실행 버전</th><th>다음 행동</th></tr></thead>
+            <tbody id="auditTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="nblog-dialog" id="campaignDialog" aria-labelledby="campaignDialogTitle">
+    <form id="campaignForm" method="dialog">
+      <div class="nblog-dialog-head">
+        <div><span class="nblog-section-kicker">새 캠페인</span><h2 id="campaignDialogTitle">새 캠페인 만들기</h2></div>
+        <button class="nblog-dialog-close" type="button" id="closeCampaignDialog" aria-label="닫기">×</button>
+      </div>
+      <p>이 양식은 실제 API로만 저장됩니다. 로그인 정보나 인증 토큰은 입력하지 마세요.</p>
+      <div class="nblog-import-row">
+        <label><span>블로그 체험단 링크</span><input id="campaignImportUrl" name="campaignImportUrl" type="url" placeholder="https://강남맛집.net/cp/?id=2206708" maxlength="500" /></label>
+        <button class="nblog-link-button" id="inspectCampaignButton" type="button">체험단 링크 가져오기</button>
+      </div>
+      <small>공개된 캠페인 정보만 가져와 아래 입력란을 자동으로 채웁니다. 방문일과 사진·영상을 확인한 뒤 저장하세요.</small>
+      <!--
+        캠페인 ID·프롬프트 재정의는 마케팅 담당자가 채울 값이 아니라 숨긴다.
+        ID 는 링크 가져오기가 NB-<체험단번호> 로 채우고, 비어 있으면 저장 직전에 만든다.
+        required 를 떼야 한다 — 숨은 required 필드는 브라우저 검증이 포커스를 못 줘서
+        아무 메시지 없이 제출이 막힌다.
+      -->
+      <label hidden><span>캠페인 ID</span><input id="newCampaignId" name="campaignId" type="text" maxlength="64" pattern="[A-Za-z0-9_-]+" /></label>
+      <label><span>캠페인명</span><input id="newCampaignName" name="campaignName" type="text" placeholder="예: 망원동 베이커리 신메뉴" maxlength="80" required /></label>
+      <label><span>캠페인 URL</span><input name="campaignUrl" type="url" placeholder="https://..." maxlength="500" required /></label>
+      <label><span>네이버 플레이스 URL</span><input name="placeUrl" type="url" placeholder="https://map.naver.com/..." maxlength="500" required /></label>
+      <div class="nblog-dialog-grid">
+        <label><span>방문일</span><input id="newCampaignDate" name="visitDate" type="date" required /></label>
+        <label><span>문체 프로필</span><input id="newCampaignProfile" name="toneProfile" type="text" value="체험단 후기 기본" maxlength="80" /></label>
+      </div>
+      <label><span>체험단 요구사항</span><textarea name="requirements" rows="4" maxlength="8000" placeholder="체험단 가이드라인, 필수 키워드, 영업시간·주소 등. 링크 가져오기로 자동 입력됩니다."></textarea></label>
+      <label><span>방문 메모</span><textarea name="visitNotes" rows="4" maxlength="4000" placeholder="직접 확인한 사실과 느낀 점만 입력하세요."></textarea></label>
+      <fieldset class="nblog-tag-fields"><legend>사용자 우선 태그</legend><div class="nblog-dialog-grid"><label><span>태그 1</span><input name="userTag" maxlength="40" /></label><label><span>태그 2</span><input name="userTag" maxlength="40" /></label></div><label><span>태그 3</span><input name="userTag" maxlength="40" /></label></fieldset>
+      <label><span>커스텀 프롬프트 프로필</span><select id="newCampaignPromptProfile" name="promptProfileId"><option value="">시스템 기본 프롬프트</option></select></label>
+      <label hidden><span>캠페인별 프롬프트 재정의</span><textarea name="promptOverride" rows="5" maxlength="12000"></textarea></label>
+      <label><span>로컬 source 폴더</span><input name="sourceFolder" type="text" placeholder="source/0712_미생맥주" maxlength="240" /></label>
+      <label><span>사진·영상 첨부</span><input id="newCampaignMedia" name="media" type="file" accept="image/jpeg,image/png,image/webp,image/heic,video/mp4,video/quicktime,video/webm" multiple /></label>
+      <small>파일을 선택하면 캠페인 생성 후 R2 업로드 초기화·완료 API를 사용합니다. 업로드 API가 없으면 성공으로 표시하지 않습니다.</small>
+      <p class="nblog-form-error" id="campaignFormError" role="alert" hidden></p>
+      <div class="nblog-dialog-actions">
+        <button class="nblog-link-button" type="button" id="cancelCampaignDialog">취소</button>
+        <button class="nblog-primary-button" id="campaignFormSubmit" type="submit">사진·영상 올리고 글 만들기</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="nblog-dialog" id="campaignDetailsDialog" aria-labelledby="campaignDetailsTitle">
+    <div class="nblog-dialog-head">
+      <div><span class="nblog-section-kicker">캠페인</span><h2 id="campaignDetailsTitle">글 만들기</h2></div>
+      <button class="nblog-dialog-close" type="button" id="closeCampaignDetails" aria-label="닫기">×</button>
+    </div>
+    <div id="campaignDetailsBody" class="nblog-details-body"></div>
+  </dialog>
+
+  <!-- 발행은 만들기와 성격이 다른 일이라 화면을 나눈다 (#182) -->
+  <dialog class="nblog-dialog" id="campaignPublishDialog" aria-labelledby="campaignPublishTitle">
+    <div class="nblog-dialog-head">
+      <div><span class="nblog-section-kicker">블로그에 올리기</span><h2 id="campaignPublishTitle">블로그에 올리기</h2></div>
+      <button class="nblog-dialog-close" type="button" id="closeCampaignPublish" aria-label="닫기">×</button>
+    </div>
+    <div id="campaignPublishBody" class="nblog-details-body"></div>
+  </dialog>
+
+  <div class="nblog-toast" id="nblogToast" role="status" aria-live="polite" hidden></div>
+
+  <script src="/assets/runtime-config.js"></script>
+  <script src="/assets/api-client.js"></script>
+  <script src="/assets/public-pages.js"></script>
+  <script src="/assets/analytics.js"></script>
+  <script src="/assets/common.js?v=20260723-1" charset="UTF-8"></script>
+  <script src="/assets/nblog-automation.js?v=20260723-1" charset="UTF-8"></script>
+</body>
+</html>

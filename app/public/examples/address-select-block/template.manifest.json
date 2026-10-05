@@ -1,0 +1,246 @@
+{
+  "schema": "feedmina.sdui.template.v1",
+  "id": "address-select-block",
+  "name": "Address Select Block",
+  "version": "0.1.0",
+  "recommendedTier": "pro-template",
+  "runtimeAdapters": [
+    "cloudflare-worker-static",
+    "react-next"
+  ],
+  "defaultLocale": "ko",
+  "locales": [
+    "ko",
+    "en"
+  ],
+  "messages": {
+    "ko": {
+      "pages.address-select.title": "주소 선택 블록",
+      "studio.labels.preview": "미리보기",
+      "studio.labels.endpoints": "엔드포인트",
+      "studio.labels.theme": "테마"
+    },
+    "en": {
+      "pages.address-select.title": "Address Select Block",
+      "studio.labels.preview": "Preview",
+      "studio.labels.endpoints": "Endpoints",
+      "studio.labels.theme": "Theme"
+    }
+  },
+  "pages": [
+    {
+      "id": "address-select",
+      "sourceKind": "screen_id",
+      "title": "Address Select",
+      "route": "/view/ADDRESS_SELECT_BLOCK",
+      "metadataRef": "metadata/address-select-block.screen.json",
+      "pluginRefs": [
+        "address-select-block"
+      ],
+      "nodes": [
+        {
+          "id": "node_address_select_root",
+          "name": "주소 선택 블록 개요",
+          "type": "Container",
+          "props": {},
+          "style": {
+            "padding": "var(--space-lg)"
+          },
+          "states": {},
+          "children": [
+            {
+              "id": "node_address_select_heading",
+              "name": "블록 제목",
+              "type": "Heading",
+              "props": {
+                "text": "주소 선택 블록",
+                "level": 2
+              },
+              "style": {
+                "color": "var(--color-text)"
+              },
+              "states": {},
+              "children": []
+            },
+            {
+              "id": "node_address_select_summary",
+              "name": "블록 설명",
+              "type": "Text",
+              "props": {
+                "text": "주소 검색, 주소 선택, 상세주소 입력을 하나의 기능 블록으로 묶고 preview/mock 과 real/provider 실행을 분리합니다."
+              },
+              "style": {
+                "color": "var(--color-muted-text)"
+              },
+              "states": {},
+              "children": []
+            },
+            {
+              "id": "node_address_select_card",
+              "name": "계약 요약 카드",
+              "type": "Card",
+              "props": {
+                "title": "출력 계약",
+                "description": "zipCode, roadAddress, detailAddress 값을 블록 단위로 반환합니다."
+              },
+              "style": {
+                "backgroundColor": "var(--color-surface)",
+                "borderColor": "var(--color-border)",
+                "borderRadius": "var(--radius-md)",
+                "padding": "var(--space-md)"
+              },
+              "states": {},
+              "children": [
+                {
+                  "id": "node_address_select_preview_button",
+                  "name": "Preview 모드 버튼",
+                  "type": "Button",
+                  "props": {
+                    "label": "Preview: mock provider",
+                    "variant": "primary"
+                  },
+                  "style": {
+                    "backgroundColor": "var(--color-primary)",
+                    "color": "#ffffff",
+                    "borderRadius": "var(--radius-md)",
+                    "padding": "var(--space-sm)"
+                  },
+                  "states": {},
+                  "children": []
+                },
+                {
+                  "id": "node_address_select_real_button",
+                  "name": "Real 모드 버튼",
+                  "type": "Button",
+                  "props": {
+                    "label": "Real: web-daum / mobile-native",
+                    "variant": "secondary"
+                  },
+                  "style": {
+                    "backgroundColor": "var(--color-accent)",
+                    "color": "#111827",
+                    "borderRadius": "var(--radius-md)",
+                    "padding": "var(--space-sm)"
+                  },
+                  "states": {},
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "format": "json",
+    "sources": [
+      "metadata/address-select-block.screen.json"
+    ]
+  },
+  "components": [
+    "GROUP",
+    "INPUT",
+    "BUTTON",
+    "MODAL",
+    "TEXT"
+  ],
+  "plugins": [
+    {
+      "id": "address-select-block",
+      "kind": "page-plugin",
+      "runtimeAdapters": [
+        "cloudflare-worker-static",
+        "react-next"
+      ],
+      "entry": "plugins/address-select-block.manifest.json",
+      "provides": {
+        "actions": [
+          "OPEN_POSTCODE",
+          "ADDRESS_SELECTED",
+          "ADDRESS_CLEARED"
+        ],
+        "hydrators": [
+          "address_preview"
+        ],
+        "widgets": [
+          "address_select_preview"
+        ]
+      }
+    }
+  ],
+  "api": {
+    "contract": "api-contract.md",
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/api/ui/ADDRESS_SELECT_BLOCK",
+        "auth": "public metadata or role-filtered preview"
+      },
+      {
+        "method": "POST",
+        "path": "/api/address/preview/mock-select",
+        "auth": "studio preview only"
+      },
+      {
+        "method": "POST",
+        "path": "/api/address/provider/select",
+        "auth": "runtime adapter specific"
+      }
+    ]
+  },
+  "env": {
+    "vars": [
+      "ADDRESS_PROVIDER_MODE"
+    ]
+  },
+  "gating": {
+    "free": [
+      "mock-preview"
+    ],
+    "pro-template": [
+      "address-block-template",
+      "sdui-compile-targets"
+    ],
+    "hosted": [
+      "provider-routing"
+    ]
+  },
+  "risks": [
+    "The current editor repository is still inaccessible, so this manifest is based on SDUI and KMovement evidence rather than a direct editor implementation.",
+    "mobile-native is modeled as an adapter note in referenced files because the current Studio runtimeAdapters catalog does not expose a separate mobile-native enum."
+  ],
+  "theme": {
+    "version": "1.0",
+    "tokens": {
+      "color": {
+        "primary": "#2563eb",
+        "accent": "#fbbf24",
+        "surface": "#ffffff",
+        "background": "#f8fafc",
+        "text": "#111827",
+        "mutedText": "#6b7280",
+        "border": "#dbe3ef"
+      },
+      "typography": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "bodySize": "14px",
+        "headingSize": "24px",
+        "captionSize": "12px",
+        "lineHeight": "1.5"
+      },
+      "space": {
+        "xs": "4px",
+        "sm": "8px",
+        "md": "16px",
+        "lg": "24px"
+      },
+      "radius": {
+        "sm": "4px",
+        "md": "10px",
+        "lg": "14px"
+      }
+    }
+  },
+  "documentVersion": 2
+}

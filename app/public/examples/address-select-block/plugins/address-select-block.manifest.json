@@ -1,0 +1,32 @@
+{
+  "id": "address-select-block",
+  "kind": "adapter-bundle",
+  "description": "Address select feature-block adapters for preview and runtime targets.",
+  "adapters": {
+    "preview": {
+      "id": "mock",
+      "behavior": "Return deterministic sample address data without contacting external services."
+    },
+    "web": {
+      "id": "web-daum",
+      "behavior": "Bridge the block event to Daum postcode and map the result into SDUI form state."
+    },
+    "mobile": {
+      "id": "mobile-native",
+      "behavior": "Bridge the block event to navigation.openPostcode and map the result into native form state."
+    }
+  },
+  "provides": {
+    "actions": [
+      "OPEN_POSTCODE",
+      "ADDRESS_SELECTED",
+      "ADDRESS_CLEARED"
+    ],
+    "states": [
+      "idle",
+      "searching",
+      "selected",
+      "error"
+    ]
+  }
+}

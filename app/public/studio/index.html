@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>화면 템플릿 편집기</title>
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="stylesheet" href="./studio.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">SDUI Template Kit</p>
+        <h1>화면 템플릿 편집기</h1>
+        <p class="topbar-help">코드 없이 구성 요소를 고르고, 문구와 디자인을 바꾼 뒤 결과를 미리 확인하세요.</p>
+      </div>
+      <div class="toolbar">
+        <button id="load-garden" type="button">예제 불러오기</button>
+        <button id="open-template-library" type="button">내 템플릿 열기</button>
+        <input id="manifest-file" type="file" accept="application/json,.json" hidden>
+        <button id="reset-manifest" type="button">처음 상태로</button>
+      </div>
+      <div class="topbar-status"><button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false">다크 모드</button><output id="studio-status" class="status-output">편집할 준비가 되었습니다</output></div>
+    </header>
+    <main id="studio-root" class="studio-grid" aria-live="polite"></main>
+    <dialog id="template-library" class="template-library" aria-labelledby="template-library-title">
+      <div class="template-library-header"><div><p class="eyebrow">LOCAL BUNDLE CATALOG</p><h2 id="template-library-title">내 템플릿 열기</h2></div><button type="button" data-close-template-library aria-label="템플릿 창 닫기">×</button></div>
+      <div class="template-library-tabs" role="tablist" aria-label="템플릿 열기 방식"><button type="button" role="tab" aria-selected="true" data-template-tab="catalog">템플릿 카탈로그</button><button type="button" role="tab" aria-selected="false" data-template-tab="file">파일에서 열기</button></div>
+      <section data-template-panel="catalog"><div class="template-library-filters"><input type="search" data-catalog-search placeholder="템플릿 검색" aria-label="템플릿 검색"><select data-catalog-project aria-label="프로젝트 필터"><option value="">모든 프로젝트</option></select></div><div class="template-library-layout"><div class="template-card-list" data-catalog-list></div><aside class="template-detail" data-catalog-detail><p class="muted">템플릿을 선택하면 상세 미리보기와 호환성 결과가 표시됩니다.</p></aside></div></section>
+      <section data-template-panel="file" hidden><div class="file-open-panel"><h3>로컬 manifest 열기</h3><p>기존 JSON 파일 열기 기능을 그대로 사용할 수 있습니다.</p><button type="button" data-open-manifest-file>JSON 파일 선택</button></div></section>
+    </dialog>
+    <script type="module" src="./studio-shell.browser.js"></script>
+  </body>
+</html>
