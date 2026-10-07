@@ -500,6 +500,41 @@ export async function listGardens(env: Env, userId: string, limit = 50) {
   return value;
 }
 
+// 공개 쇼케이스 — 로그인 없이 읽는다. 빌드가 성공해 site_url 이 있고 소스 저장소가 public 인
+// 가든만, 제목·사이트 주소·마지막 빌드 시각만 내보낸다(사용자 id·repo·config 는 내보내지 않는다).
+// sdui-template-kit 의 게시 가든 페이지가 서버에서 가져가 "planning-harness 에서 공개된 가든" 으로 보여 준다.
+export async function listPublicGardens(env: Env, limit = 20) {
+  const n = Math.min(50, Math.max(1, limit));
+  const cacheKey = `public:${n}`;
+  const cached = gardenReadCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.value as { gardens: PublicGarden[]; public: true };
+  const { results } = await env.DB.prepare(
+    `SELECT g.id, g.title, g.config_json, g.site_url, g.last_build_at, g.updated_at
+     FROM gardens g
+     WHERE g.status = 'succeeded' AND g.site_url IS NOT NULL AND g.site_url <> ''
+     ORDER BY COALESCE(g.last_build_at, g.updated_at) DESC
+     LIMIT ?`
+  ).bind(n * 2).all<Pick<GardenRow, "id" | "title" | "config_json" | "site_url" | "last_build_at" | "updated_at">>();
+  const gardens: PublicGarden[] = [];
+  for (const row of results || []) {
+    const config = parseConfig(row.config_json);
+    if (!config || config.source?.visibility !== "public") continue;
+    if (!/^https:\/\//.test(String(row.site_url))) continue;
+    gardens.push({ id: row.id, title: row.title, site_url: row.site_url as string, last_build_at: row.last_build_at });
+    if (gardens.length >= n) break;
+  }
+  const value = { gardens, public: true as const };
+  gardenReadCache.set(cacheKey, { value, expiresAt: Date.now() + 30_000 });
+  return value;
+}
+
+interface PublicGarden {
+  id: string;
+  title: string;
+  site_url: string;
+  last_build_at: string | null;
+}
+
 export async function getGarden(env: Env, userId: string, gardenId: string) {
   const cacheKey = `detail:${userId}:${gardenId}`;
   const cached = gardenReadCache.get(cacheKey);

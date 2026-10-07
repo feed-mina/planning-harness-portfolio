@@ -63,6 +63,10 @@ app/
 | `POST /api/auth/connected-app/token` | 별도 backchannel secret을 가진 서버만 코드를 교환. 사용자 ID와 issuer/audience/environment가 포함된 최소 assertion만 반환하며 CORS를 허용하지 않음 |
 | `GET /api/health` | 헬스체크 |
 
+### 가든 공개 쇼케이스 `GET /api/gardens/public`
+
+로그인 없이 읽을 수 있는 유일한 가든 API. 빌드가 성공해 `site_url` 이 있고 소스 저장소 공개 범위가 `public` 인 가든만 `{ gardens: [{ id, title, site_url, last_build_at }], public: true }` 로 돌려준다(사용자 id·repo·설정은 내보내지 않음, 30초 캐시, `limit` 1~50). sdui-template-kit 의 게시 가든 페이지가 서버 쪽에서 가져가 "planning-harness 에서 공개된 가든" 목록으로 보여 준다. 그 외 `/api/gardens*` 는 GitHub 로그인이 필요하다.
+
 ### AI provider·모델·프롬프트
 - 기능 페이지와 마이페이지에서 provider/model을 선택할 수 있습니다. Gemini는 **Gemini API(Google AI Studio)** 를 사용합니다.
 - **커스텀 프롬프트**: 마이페이지에서 편집. 플레이스홀더 `{{date}} {{time}} {{subject}} {{attendees}} {{transcript}}`.

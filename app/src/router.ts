@@ -136,6 +136,7 @@ import {
   getGarden,
   listGardenBuilds,
   listGardens,
+  listPublicGardens,
   saveGarden,
   saveGardenLogoFromRequest,
   deleteGardenLogo,
@@ -1058,6 +1059,12 @@ async function routeRequest(request: Request, env: Env, ctx: ExecutionContext): 
         const denied = requireLogin();
         if (denied) return withCookie(denied);
         return withCookie(json(await unlinkGardenFromOrganization(env, userId, gardenOrganizationsMatch[2], gardenOrganizationsMatch[1])));
+      }
+
+      // 공개 쇼케이스: 로그인 없이 읽는다. 아래 /api/gardens/:id 보다 먼저 와야 "public" 이 id 로 잡히지 않는다.
+      if (path === "/api/gardens/public" && request.method === "GET") {
+        const limit = Math.min(50, Math.max(1, Number(url.searchParams.get("limit")) || 20));
+        return withCookie(json(await listPublicGardens(env, limit), { headers: { "cache-control": "public, max-age=30" } }));
       }
 
       if (path === "/api/gardens" && request.method === "GET") {
